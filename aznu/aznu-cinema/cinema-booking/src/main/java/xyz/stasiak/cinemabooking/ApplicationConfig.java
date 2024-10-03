@@ -1,4 +1,4 @@
-package xyz.stasiak.flight;
+package xyz.stasiak.cinemabooking;
 
 import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
@@ -46,10 +46,10 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public Endpoint endpoint(Bus bus, FlightService flightService) {
+    public Endpoint endpoint(Bus bus, CinemaBookingService cinemaBookingService) {
 
-        EndpointImpl endpoint = new EndpointImpl(bus, flightService);
-        endpoint.publish("/service/fligth");
+        EndpointImpl endpoint = new EndpointImpl(bus, cinemaBookingService);
+        endpoint.publish("/service/cinema");
 
         return endpoint;
     }
