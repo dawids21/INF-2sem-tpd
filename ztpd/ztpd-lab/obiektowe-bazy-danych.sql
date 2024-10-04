@@ -1,8 +1,3 @@
-drop table samochody;
-drop table wlasciciele;
-drop type samochod;
-drop type wlasciciel;
-
 -- zad 1
 create type samochod as object
 (
@@ -431,9 +426,37 @@ CREATE OR REPLACE TYPE BODY lew AS
 END;
 
 DECLARE
-    KrolLew    lew    := lew('LEW', 4);
+    KrolLew lew := lew('LEW', 4);
 --     InnaIstota istota := istota('JAKIES ZWIERZE');
 BEGIN
     DBMS_OUTPUT.PUT_LINE(KrolLew.poluj('antylopa'));
 END;
 
+-- zad 14
+DECLARE
+    tamburyn instrument;
+    cymbalki instrument;
+    trabka   instrument_dety;
+    saksofon instrument_dety;
+BEGIN
+    tamburyn := instrument('tamburyn', 'brzdek-brzdek');
+    cymbalki := instrument_dety('cymbalki', 'ding-ding', 'metalowe');
+    trabka := instrument_dety('trabka', 'tra-ta-ta', 'metalowa');
+    --     saksofon := instrument('saksofon','tra-taaaa');
+--     saksofon := TREAT( instrument('saksofon','tra-taaaa') AS instrument_dety);
+END;
+
+-- zad 15
+CREATE TABLE instrumenty OF instrument;
+
+INSERT INTO instrumenty
+VALUES (instrument('tamburyn', 'brzdek-brzdek'));
+
+INSERT INTO instrumenty
+VALUES (instrument_dety('trabka', 'tra-ta-ta', 'metalowa'));
+
+INSERT INTO instrumenty
+VALUES (instrument_klawiszowy('fortepian', 'pingping', 'steinway'));
+
+SELECT i.nazwa, i.graj()
+FROM instrumenty i;
