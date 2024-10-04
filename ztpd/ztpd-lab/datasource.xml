@@ -1,0 +1,37 @@
+#DataSourceSettings#
+#LocalDataSource: @admlab2.cs.put.poznan.pl
+#BEGIN#
+<data-source source="LOCAL" name="@admlab2.cs.put.poznan.pl" uuid="b98fe68e-45c5-43f5-b75b-b5cea7bcd6d1">
+    <database-info product="Oracle"
+                   version="Oracle Database 21c Enterprise Edition Release 21.0.0.0.0 - Production&#xa;Version 21.15.0.0.0"
+                   jdbc-version="4.3" driver-name="Oracle JDBC driver" driver-version="21.5.0.0.0" dbms="ORACLE"
+                   exact-version="21.0.0.0.0" exact-driver-version="21.5">
+        <extra-name-characters>$#</extra-name-characters>
+        <identifier-quote-string>&quot;</identifier-quote-string>
+    </database-info>
+    <case-sensitivity plain-identifiers="upper" quoted-identifiers="exact"/>
+    <driver-ref>oracle.19</driver-ref>
+    <synchronize>true</synchronize>
+    <auto-commit>false</auto-commit>
+    <jdbc-driver>oracle.jdbc.OracleDriver</jdbc-driver>
+    <jdbc-url>jdbc:oracle:thin:@//admlab2.cs.put.poznan.pl:1521/dblab03_students.cs.put.poznan.pl</jdbc-url>
+    <jdbc-additional-properties>
+        <property name="com.intellij.clouds.kubernetes.db.host.port"/>
+        <property name="com.intellij.clouds.kubernetes.db.enabled" value="false"/>
+        <property name="com.intellij.clouds.kubernetes.db.container.port"/>
+    </jdbc-additional-properties>
+    <secret-storage>master_key</secret-storage>
+    <user-name>tpd148112</user-name>
+    <schema-mapping>
+        <introspection-scope>
+            <node kind="schema">
+                <name qname="@"/>
+                <name qname="PUBLIC"/>
+                <name qname="ZTPD"/>
+            </node>
+        </introspection-scope>
+    </schema-mapping>
+    <load-sources>user_and_system_sources</load-sources>
+    <working-dir>$ProjectFileDir$</working-dir>
+</data-source>
+#END#
