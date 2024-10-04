@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:soapui-project id="a629416b-14c4-4f70-bf2a-367971548bc9" activeEnvironment="Default" name="hotel-booking" resourceRoot="" soapui-version="5.7.2" abortOnError="false" runType="SEQUENTIAL" xmlns:con="http://eviware.com/soapui/config"><con:settings/><con:interface xsi:type="con:WsdlInterface" id="8621d493-c774-4d2f-b463-9f50f93ef254" wsaVersion="NONE" name="HotelBookingEndpointServiceSoapBinding" type="wsdl" bindingName="{http://hotel.bp.org/}HotelBookingEndpointServiceSoapBinding" soapVersion="1_1" anonymous="optional" definition="http://localhost:8080/soap-api/service/hotel?wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:definitionCache type="TEXT" rootPart="http://localhost:8080/soap-api/service/hotel?wsdl"><con:part><con:url>http://localhost:8080/soap-api/service/hotel?wsdl</con:url><con:content><![CDATA[<wsdl:definitions name="HotelBookingEndpointService" targetNamespace="http://hotel.bp.org/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://hotel.bp.org/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns3="http://schemas.xmlsoap.org/soap/http" xmlns:ns1="http://www.bp.org/hotel/">
+  <wsdl:import location="http://localhost:8080/soap-api/service/hotel?wsdl=HotelBooking.wsdl" namespace="http://www.bp.org/hotel/"></wsdl:import>
+  <wsdl:binding name="HotelBookingEndpointServiceSoapBinding" type="ns1:HotelBooking">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="bookRoom">
+      <soap:operation soapAction="http://www.bp.org/hotel/bookRoom" style="document"/>
+      <wsdl:input name="bookRoom">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="bookRoomResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="HotelFaultMsg">
+        <soap:fault name="HotelFaultMsg" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="cancelBooking">
+      <soap:operation soapAction="http://www.bp.org/hotel/cancelBooking" style="document"/>
+      <wsdl:input name="cancelBooking">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="cancelBookingResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="HotelFaultMsg">
+        <soap:fault name="HotelFaultMsg" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="HotelBookingEndpointService">
+    <wsdl:port binding="tns:HotelBookingEndpointServiceSoapBinding" name="HotelBookingEndpointPort">
+      <soap:address location="http://localhost:8080/soap-api/service/hotel"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part><con:part><con:url>http://localhost:8080/soap-api/service/hotel?wsdl=HotelBooking.wsdl</con:url><con:content><![CDATA[<wsdl:definitions name="HotelBooking" targetNamespace="http://www.bp.org/hotel/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns2="http://www.bp.org" xmlns:ns1="http://www.bp.org/hotel/">
+  <wsdl:types>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://www.bp.org/types" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.bp.org/types">
+      <xs:complexType name="Person">
+        <xs:sequence>
+          <xs:element name="firstName" type="xs:string"/>
+          <xs:element name="lastName" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="Hotel">
+        <xs:sequence>
+          <xs:element name="name" type="xs:string"/>
+          <xs:element name="city" type="xs:string"/>
+          <xs:element name="country" type="xs:string"/>
+          <xs:element name="address" type="xs:string"/>
+          <xs:element name="checkIn" type="xs:dateTime"/>
+          <xs:element name="checkOut" type="xs:dateTime"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="BookingInfo">
+        <xs:sequence>
+          <xs:element name="id" type="xs:int"/>
+          <xs:element name="cost" type="xs:decimal"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="Fault">
+        <xs:sequence>
+          <xs:element name="code" type="xs:int"/>
+          <xs:element name="text" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="Flight">
+        <xs:sequence>
+          <xs:element name="from" type="tns:Point"/>
+          <xs:element name="to" type="tns:Point"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="Point">
+        <xs:sequence>
+          <xs:element name="airport" type="xs:string"/>
+          <xs:element name="date" type="xs:dateTime"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="PaymentCard">
+        <xs:sequence>
+          <xs:element name="name" type="xs:string"/>
+          <xs:element name="validTo" type="xs:string"/>
+          <xs:element name="number" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:schema>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://www.bp.org" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns1="http://www.bp.org/types">
+      <xs:import namespace="http://www.bp.org/types"/>
+      <xs:element name="bookRoomRequest">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="person" type="ns1:Person"/>
+            <xs:element name="hotel" type="ns1:Hotel"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="bookRoomResponse" type="ns1:BookingInfo"/>
+      <xs:element name="cancelBookingRequest">
+        <xs:complexType>
+          <xs:sequence/>
+          <xs:attribute name="bookingId" type="xs:int"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="cancelBookingResponse" type="ns1:BookingInfo"/>
+      <xs:element name="hotelFault" type="ns1:Fault"/>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="cancelBooking">
+    <wsdl:part element="ns2:cancelBookingRequest" name="payload"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="HotelFaultMsg">
+    <wsdl:part element="ns2:hotelFault" name="HotelFaultMsg"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="bookRoomResponse">
+    <wsdl:part element="ns2:bookRoomResponse" name="payload"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="bookRoom">
+    <wsdl:part element="ns2:bookRoomRequest" name="payload"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="cancelBookingResponse">
+    <wsdl:part element="ns2:cancelBookingResponse" name="payload"></wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="HotelBooking">
+    <wsdl:operation name="bookRoom">
+      <wsdl:input message="ns1:bookRoom" name="bookRoom"></wsdl:input>
+      <wsdl:output message="ns1:bookRoomResponse" name="bookRoomResponse"></wsdl:output>
+      <wsdl:fault message="ns1:HotelFaultMsg" name="HotelFaultMsg"></wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="cancelBooking">
+      <wsdl:input message="ns1:cancelBooking" name="cancelBooking"></wsdl:input>
+      <wsdl:output message="ns1:cancelBookingResponse" name="cancelBookingResponse"></wsdl:output>
+      <wsdl:fault message="ns1:HotelFaultMsg" name="HotelFaultMsg"></wsdl:fault>
+    </wsdl:operation>
+  </wsdl:portType>
+</wsdl:definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part></con:definitionCache><con:endpoints><con:endpoint>http://localhost:8080/soap-api/service/hotel</con:endpoint></con:endpoints><con:operation id="0ef38b73-db25-4892-ade7-7f1672c83f3f" isOneWay="false" action="http://www.bp.org/hotel/bookRoom" name="bookRoom" bindingOperationName="bookRoom" type="Request-Response" outputName="bookRoomResponse" inputName="bookRoom" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="04944d4a-2d6f-4fb8-9f4c-ec4d685ab42a" name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost:8080/soap-api/service/hotel</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:bp="http://www.bp.org" xmlns:typ="http://www.bp.org/types">\r
+   <soapenv:Header/>\r
+   <soapenv:Body>\r
+      <bp:bookRoomRequest>\r
+         <bp:person>\r
+            <typ:firstName>Jan</typ:firstName>\r
+            <typ:lastName>Kowalski</typ:lastName>\r
+         </bp:person>\r
+         <bp:hotel>\r
+            <typ:name>Mercure</typ:name>\r
+            <typ:city>Poznań</typ:city>\r
+            <typ:country>Poland</typ:country>\r
+            <typ:address>abc</typ:address>\r
+         </bp:hotel>\r
+      </bp:bookRoomRequest>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://www.bp.org/hotel/bookRoom"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation id="8ae7b8ae-155f-4987-bd67-a5b0ffdd07e4" isOneWay="false" action="http://www.bp.org/hotel/cancelBooking" name="cancelBooking" bindingOperationName="cancelBooking" type="Request-Response" outputName="cancelBookingResponse" inputName="cancelBooking" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="1a5336d0-43d3-435c-ab25-2beafd721016" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost:8080/soap-api/service/hotel</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:bp="http://www.bp.org">\r
+   <soapenv:Header/>\r
+   <soapenv:Body>\r
+      <bp:cancelBookingRequest bookingId="?"/>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://www.bp.org/hotel/cancelBooking"/></con:call></con:operation></con:interface><con:properties/><con:wssContainer/><con:oAuth2ProfileContainer/><con:oAuth1ProfileContainer/></con:soapui-project>
