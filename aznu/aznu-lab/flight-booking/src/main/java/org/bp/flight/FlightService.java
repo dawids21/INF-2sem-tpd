@@ -31,6 +31,9 @@ public class FlightService {
 	}
 	
 	public BookingInfo cancelBooking(int bookingId) throws Fault{
-		return null;
+		BookingInfo bookingInfo = new BookingInfo();
+		bookingInfo.setId(bookingId);
+		bookingInfo.setCost(new java.math.BigDecimal(345));
+		return bookingInfo;
 	}
 }

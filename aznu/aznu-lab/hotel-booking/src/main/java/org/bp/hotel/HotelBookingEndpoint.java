@@ -27,6 +27,9 @@ public class HotelBookingEndpoint implements HotelBooking {
 
     @Override
     public BookingInfo cancelBooking(CancelBookingRequest payload) throws HotelFaultMsg {
-        return null;
+        BookingInfo response = new BookingInfo();
+        response.setId(payload.getBookingId());
+        response.setCost(new java.math.BigDecimal(999));
+        return response;
     }
 }
