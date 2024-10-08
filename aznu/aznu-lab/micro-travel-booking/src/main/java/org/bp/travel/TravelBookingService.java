@@ -1,16 +1,24 @@
 package org.bp.travel;
 
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
+import org.bp.travel.exceptions.FlightException;
+import org.bp.travel.exceptions.HotelException;
 import org.bp.travel.model.BookTravelRequest;
 import org.bp.travel.model.BookingInfo;
+import org.bp.travel.model.ExceptionResponse;
 import org.bp.travel.model.Utils;
+import org.bp.travel.state.ProcessingEvent;
+import org.bp.travel.state.ProcessingState;
+import org.bp.travel.state.StateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 
 @Component
 public class TravelBookingService extends RouteBuilder {
@@ -21,9 +29,17 @@ public class TravelBookingService extends RouteBuilder {
     @Autowired
     PaymentService paymentService;
 
+    @Autowired
+    StateService flightStateService;
+
+    @Autowired
+    StateService hotelStateService;
+
+
     @Override
     public void configure() throws Exception {
-
+        bookHotelExceptionHandlers();
+        bookFlightExceptionHandlers();
         gateway();
         hotel();
         flight();
@@ -81,26 +97,64 @@ public class TravelBookingService extends RouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, BookTravelRequest.class)
                 .process(
                         (exchange) -> {
-                            BookingInfo bi = new BookingInfo();
-                            bi.setId(bookingIdentifierService.getBookingIdentifier());
-                            BookTravelRequest btr= exchange.getMessage().getBody(BookTravelRequest.class);
-                            if (btr!=null && btr.getHotel()!=null
-                                    && btr.getHotel().getCountry()!=null ) {
-                                String country = btr.getHotel().getCountry();
-                                if (country.equals("USA")) {
-                                    bi.setCost(new BigDecimal(999));
+                            String bookingTravelId =
+                                    exchange.getMessage().getHeader("bookingTravelId", String.class);
+                            ProcessingState previousState =
+                                    hotelStateService.sendEvent(bookingTravelId, ProcessingEvent.START);
+                            if (previousState != ProcessingState.CANCELLED) {
+                                BookingInfo bi = new BookingInfo();
+                                bi.setId(bookingIdentifierService.getBookingIdentifier());
+                                BookTravelRequest btr =
+                                        exchange.getMessage().getBody(BookTravelRequest.class);
+                                if (btr != null && btr.getHotel() != null
+                                        && btr.getHotel().getCountry() != null) {
+                                    String country = btr.getHotel().getCountry();
+                                    if (country.equals("USA")) {
+                                        bi.setCost(new BigDecimal(999));
+                                    } else if (country.equals("China")) {
+                                        throw new HotelException("Not serviced destination:"+country);
+                                    } else {
+                                        bi.setCost(new BigDecimal(888));
+                                    }
                                 }
-                                else {
-                                    bi.setCost(new BigDecimal(888));
-                                }
+                                exchange.getMessage().setBody(bi);
+                                previousState = hotelStateService.sendEvent(bookingTravelId,
+                                        ProcessingEvent.FINISH);
                             }
-                            exchange.getMessage().setBody(bi);
+                            exchange.getMessage().setHeader("previousState", previousState);
                         }
                 )
                 .marshal().json()
                 .to("stream:out")
+                .choice()
+                .when(header("previousState").isEqualTo(ProcessingState.CANCELLED))
+                .to("direct:bookHotelCompensationAction")
+                .otherwise()
                 .setHeader("serviceType", constant("hotel"))
-                .to("kafka:BookingInfoTopic?brokers=localhost:29092");
+                .to("kafka:BookingInfoTopic?brokers=localhost:29092")
+                .endChoice();
+
+        from("kafka:TravelBookingFailTopic?brokers=localhost:29092").routeId("bookHotelCompensation")
+                .log("fired bookHotelCompensation")
+                .unmarshal().json(JsonLibrary.Jackson, ExceptionResponse.class)
+                .choice()
+                .when(header("serviceType").isNotEqualTo("hotel"))
+                .process((exchange) -> {
+                    String bookingTravelId = exchange.getMessage().getHeader("bookingTravelId",
+                            String.class);
+                    ProcessingState previousState = hotelStateService.sendEvent(bookingTravelId,
+                            ProcessingEvent.CANCEL);
+                    exchange.getMessage().setHeader("previousState", previousState);
+                })
+                .choice()
+                .when(header("previousState").isEqualTo(ProcessingState.FINISHED))
+                .to("direct:bookHotelCompensationAction")
+                .endChoice()
+                .endChoice();
+        from("direct:bookHotelCompensationAction").routeId("bookHotelCompensationAction")
+                .log("fired bookHotelCompensationAction")
+                .to("stream:out");
+
 
     }
 
@@ -110,26 +164,64 @@ public class TravelBookingService extends RouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, BookTravelRequest.class)
                 .process(
                         (exchange) -> {
-                            BookingInfo bi = new BookingInfo();
-                            bi.setId(bookingIdentifierService.getBookingIdentifier());
-                            BookTravelRequest btr= exchange.getMessage().getBody(BookTravelRequest.class);
-                            if (btr!=null && btr.getFlight()!=null && btr.getFlight().getFrom()!=null
-                                    && btr.getFlight().getFrom().getAirport()!=null) {
-                                String from=btr.getFlight().getFrom().getAirport();
-                                if (from.equals("JFK")) {
-                                    bi.setCost(new BigDecimal(700));
+                            String bookingTravelId =
+                                    exchange.getMessage().getHeader("bookingTravelId", String.class);
+                            ProcessingState previousState =
+                                    flightStateService.sendEvent(bookingTravelId, ProcessingEvent.START);
+                            if (previousState != ProcessingState.CANCELLED) {
+
+                                BookingInfo bi = new BookingInfo();
+                                bi.setId(bookingIdentifierService.getBookingIdentifier());
+                                BookTravelRequest btr = exchange.getMessage().getBody(BookTravelRequest.class);
+                                if (btr != null && btr.getFlight() != null && btr.getFlight().getFrom() != null
+                                        && btr.getFlight().getFrom().getAirport() != null) {
+                                    String from = btr.getFlight().getFrom().getAirport();
+                                    if (from.equals("JFK")) {
+                                        bi.setCost(new BigDecimal(700));
+                                    } else if (from.equals("PEK")) {
+                                        throw new FlightException("Not serviced airport: " + from);
+                                    } else {
+                                        bi.setCost(new BigDecimal(600));
+                                    }
                                 }
-                                else {
-                                    bi.setCost(new BigDecimal(600));
-                                }
+                                exchange.getMessage().setBody(bi);
+                                previousState = flightStateService.sendEvent(bookingTravelId,
+                                        ProcessingEvent.FINISH);
                             }
-                            exchange.getMessage().setBody(bi);
+                            exchange.getMessage().setHeader("previousState", previousState);
+
                         }
                 )
                 .marshal().json()
                 .to("stream:out")
+                .choice()
+                .when(header("previousState").isEqualTo(ProcessingState.CANCELLED))
+                .to("direct:bookFlightCompensationAction")
+                .otherwise()
                 .setHeader("serviceType", constant("flight"))
-                .to("kafka:BookingInfoTopic?brokers=localhost:29092");
+                .to("kafka:BookingInfoTopic?brokers=localhost:29092")
+                .endChoice();
+
+        from("kafka:TravelBookingFailTopic?brokers=localhost:29092").routeId("bookFlightCompensation")
+                .log("fired bookFlightCompensation")
+                .unmarshal().json(JsonLibrary.Jackson, ExceptionResponse.class)
+                .choice()
+                .when(header("serviceType").isNotEqualTo("flight"))
+                .process((exchange) -> {
+                    String bookingTravelId = exchange.getMessage().getHeader("bookingTravelId", String.class);
+                    ProcessingState previousState = flightStateService.sendEvent(bookingTravelId,
+                            ProcessingEvent.CANCEL);
+                    exchange.getMessage().setHeader("previousState", previousState);
+                })
+                .choice()
+                .when(header("previousState").isEqualTo(ProcessingState.FINISHED))
+                .to("direct:bookFlightCompensationAction")
+                .endChoice()
+                .endChoice();
+
+        from("direct:bookFlightCompensationAction").routeId("bookFlightCompensationAction")
+                .log("fired bookFlightCompensationAction")
+                .to("stream:out");
     }
 
     private void payment() {
@@ -140,7 +232,7 @@ public class TravelBookingService extends RouteBuilder {
                         (exchange) -> {
                             String bookingTravelId =
                                     exchange.getMessage().getHeader("bookingTravelId", String.class);
-                            boolean isReady= paymentService.addBookingInfo(
+                            boolean isReady = paymentService.addBookingInfo(
                                     bookingTravelId,
                                     exchange.getMessage().getBody(BookingInfo.class),
                                     exchange.getMessage().getHeader("serviceType", String.class));
@@ -158,7 +250,7 @@ public class TravelBookingService extends RouteBuilder {
                         (exchange) -> {
                             String bookingTravelId = exchange.getMessage()
                                     .getHeader("bookingTravelId", String.class);
-                            boolean isReady= paymentService.addBookTravelRequest(
+                            boolean isReady = paymentService.addBookTravelRequest(
                                     bookingTravelId,
                                     exchange.getMessage().getBody(BookTravelRequest.class));
                             exchange.getMessage().setHeader("isReady", isReady);
@@ -176,9 +268,9 @@ public class TravelBookingService extends RouteBuilder {
                                     getHeader("bookingTravelId", String.class);
                             PaymentService.PaymentData paymentData =
                                     paymentService.getPaymentData(bookingTravelId);
-                            BigDecimal hotelCost=paymentData.hotelBookingInfo.getCost();
-                            BigDecimal flightCost=paymentData.flightBookingInfo.getCost();
-                            BigDecimal totalCost=hotelCost.add(flightCost);
+                            BigDecimal hotelCost = paymentData.hotelBookingInfo.getCost();
+                            BigDecimal flightCost = paymentData.flightBookingInfo.getCost();
+                            BigDecimal totalCost = hotelCost.add(flightCost);
                             BookingInfo travelBookingInfo = new BookingInfo();
                             travelBookingInfo.setId(bookingTravelId);
                             travelBookingInfo.setCost(totalCost);
@@ -193,4 +285,41 @@ public class TravelBookingService extends RouteBuilder {
 
     }
 
+    private void bookFlightExceptionHandlers() {
+        onException(FlightException.class)
+                .process((exchange) -> {
+                            ExceptionResponse er = new ExceptionResponse();
+                            er.setTimestamp(OffsetDateTime.now());
+                            Exception cause =
+                                    exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+                            er.setMessage(cause.getMessage());
+                            exchange.getMessage().setBody(er);
+                        }
+                )
+                .marshal().json()
+                .to("stream:out")
+                .setHeader("serviceType", constant("flight"))
+                .to("kafka:TravelBookingFailTopic?brokers=localhost:29092")
+                .handled(true)
+        ;
+    }
+
+    private void bookHotelExceptionHandlers() {
+        onException(HotelException.class)
+                .process((exchange) -> {
+                            ExceptionResponse er = new ExceptionResponse();
+                            er.setTimestamp(OffsetDateTime.now());
+                            Exception cause =
+                                    exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+                            er.setMessage(cause.getMessage());
+                            exchange.getMessage().setBody(er);
+                        }
+                )
+                .marshal().json()
+                .to("stream:out")
+                .setHeader("serviceType", constant("hotel"))
+                .to("kafka:TravelBookingFailTopic?brokers=localhost:29092")
+                .handled(true)
+        ;
+    }
 }
