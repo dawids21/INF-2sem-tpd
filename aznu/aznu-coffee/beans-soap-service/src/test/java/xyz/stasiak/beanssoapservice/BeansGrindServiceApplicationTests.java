@@ -1,0 +1,13 @@
+package xyz.stasiak.beanssoapservice;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class BeansGrindServiceApplicationTests {
+
+    @Test
+    void contextLoads() {
+    }
+
+}

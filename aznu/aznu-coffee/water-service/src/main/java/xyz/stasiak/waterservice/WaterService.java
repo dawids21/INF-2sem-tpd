@@ -11,22 +11,20 @@ public class WaterService {
     private final WaterOrderRepository waterOrderRepository;
 
     @Transactional
-    public void prepareWater(WaterPrepareRequest request) {
-        try {
-            WaterOrder waterOrder = waterOrderRepository.findByBrewIdForUpdate(request.brewId())
-                    .orElse(new WaterOrder(request.brewId(), request.volume(), request.temperature()));
-            waterOrder.prepare();
-            waterOrderRepository.save(waterOrder);
-        } catch (InterruptedException e) {
-            throw new WaterException(request.brewId(), "InterruptedException", e);
-        }
+    public WaterPrepareResponse prepareWater(WaterPrepareRequest request) throws InterruptedException {
+        WaterOrder waterOrder = waterOrderRepository.findByBrewIdForUpdate(request.brewId())
+                .orElse(new WaterOrder(request.brewId(), request.volume(), request.temperature()));
+        waterOrder.prepare();
+        waterOrderRepository.save(waterOrder);
+        return new WaterPrepareResponse(waterOrder.getBrewId(), waterOrder.getVolume(), waterOrder.getTemperature());
     }
 
     @Transactional
-    public void cancelWater(WaterCancelRequest request) {
+    public WaterCancelResponse cancelWater(WaterCancelRequest request) {
         WaterOrder waterOrder = waterOrderRepository.findByBrewIdForUpdate(request.brewId())
                 .orElse(new WaterOrder(request.brewId(), 0, 0));
         waterOrder.cancel();
         waterOrderRepository.save(waterOrder);
+        return new WaterCancelResponse(waterOrder.getBrewId());
     }
 }

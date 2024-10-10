@@ -36,42 +36,6 @@ public class KafkaConfig {
     @Value("${kafka.topic.water-cancelled}")
     private String waterCancelledTopic;
 
-//    @Bean
-//    public Map<String, Object> producerConfigs() {
-//        Map<String, Object> props =
-//                new HashMap<>(kafkaProperties.buildProducerProperties(null));
-//        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-//                StringSerializer.class);
-//        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-//                StringSerializer.class);
-//        return props;
-//    }
-//
-//    @Bean
-//    public ProducerFactory<String, String> producerFactory() {
-//        return new DefaultKafkaProducerFactory<>(producerConfigs());
-//    }
-//
-//    @Bean
-//    public ConsumerFactory<String, String> consumerFactory() {
-//        Map<String, Object> configProps = new HashMap<>(kafkaProperties.buildConsumerProperties(null));
-//        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-//        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-//        return new DefaultKafkaConsumerFactory<>(configProps);
-//    }
-//
-//    @Bean
-//    public KafkaTemplate<String, String> kafkaTemplate() {
-//        return new KafkaTemplate<>(producerFactory());
-//    }
-//
-//    @Bean
-//    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
-//        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-//        factory.setConsumerFactory(consumerFactory());
-//        return factory;
-//    }
-
     @Bean
     public NewTopic waterRequestedTopic() {
         return new NewTopic(waterRequestedTopic, 1, (short) 1);

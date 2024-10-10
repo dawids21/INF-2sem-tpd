@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://beanssoapservice.stasiak.xyz/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http" name="BeansSoapServiceService" targetNamespace="http://beanssoapservice.stasiak.xyz/">
+  <wsdl:types>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://beanssoapservice.stasiak.xyz/" elementFormDefault="unqualified" targetNamespace="http://beanssoapservice.stasiak.xyz/" version="1.0">
+
+  <xs:element name="cancelBeans" type="tns:cancelBeans"/>
+
+  <xs:element name="cancelBeansResponse" type="tns:cancelBeansResponse"/>
+
+  <xs:element name="grindBeans" type="tns:grindBeans"/>
+
+  <xs:element name="grindBeansResponse" type="tns:grindBeansResponse"/>
+
+  <xs:complexType name="grindBeans">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="tns:beansSoapGrindRequest"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="beansSoapGrindRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="brewId" type="xs:string"/>
+      <xs:element minOccurs="0" name="name" type="xs:string"/>
+      <xs:element name="weight" type="xs:int"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="grindBeansResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="return" type="tns:beansSoapGrindResponse"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="beansSoapGrindResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="brewId" type="xs:string"/>
+      <xs:element minOccurs="0" name="name" type="xs:string"/>
+      <xs:element name="weight" type="xs:int"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="cancelBeans">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="tns:beansSoapCancelRequest"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="beansSoapCancelRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="brewId" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="cancelBeansResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="return" type="tns:beansSoapCancelResponse"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="beansSoapCancelResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="brewId" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>
+  </wsdl:types>
+  <wsdl:message name="grindBeansResponse">
+    <wsdl:part element="tns:grindBeansResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="grindBeans">
+    <wsdl:part element="tns:grindBeans" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="cancelBeans">
+    <wsdl:part element="tns:cancelBeans" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="cancelBeansResponse">
+    <wsdl:part element="tns:cancelBeansResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="BeansSoapService">
+    <wsdl:operation name="grindBeans">
+      <wsdl:input message="tns:grindBeans" name="grindBeans">
+    </wsdl:input>
+      <wsdl:output message="tns:grindBeansResponse" name="grindBeansResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cancelBeans">
+      <wsdl:input message="tns:cancelBeans" name="cancelBeans">
+    </wsdl:input>
+      <wsdl:output message="tns:cancelBeansResponse" name="cancelBeansResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BeansSoapServiceServiceSoapBinding" type="tns:BeansSoapService">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="grindBeans">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="grindBeans">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="grindBeansResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cancelBeans">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="cancelBeans">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="cancelBeansResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="BeansSoapServiceService">
+    <wsdl:port binding="tns:BeansSoapServiceServiceSoapBinding" name="BeansSoapServicePort">
+      <soap:address location="http://localhost:8082/soap-api/service/beans"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -28,13 +29,16 @@ public class WaterKafkaService {
     private String waterErrorTopic;
 
     @KafkaListener(topics = "${kafka.topic.water-requested}")
-    public void handleWaterRequested(String message) throws JsonProcessingException {
+    public void handleWaterRequested(String message) throws JsonProcessingException, InterruptedException {
         try {
             WaterPrepareRequest waterPrepareRequest = objectMapper.readValue(message, WaterPrepareRequest.class);
-            waterService.prepareWater(waterPrepareRequest);
-            WaterPrepareResponse waterPrepareResponse = new WaterPrepareResponse(
-                    waterPrepareRequest.brewId(), waterPrepareRequest.volume(), waterPrepareRequest.temperature()
-            );
+            WaterPrepareResponse waterPrepareResponse ;
+            try {
+                waterPrepareResponse = waterService.prepareWater(waterPrepareRequest);
+            } catch (DataIntegrityViolationException e) {
+                // retry in case of concurrent request
+                waterPrepareResponse = waterService.prepareWater(waterPrepareRequest);
+            }
             kafkaTemplate.send(waterPreparedTopic, objectMapper.writeValueAsString(waterPrepareResponse));
         } catch (WaterException e) {
             log.error("Error while preparing water", e);
@@ -46,10 +50,13 @@ public class WaterKafkaService {
     @KafkaListener(topics = "${kafka.topic.water-cancel-requested}")
     public void handleWaterCancelRequested(String message) throws JsonProcessingException {
         WaterCancelRequest waterCancelRequest = objectMapper.readValue(message, WaterCancelRequest.class);
-        waterService.cancelWater(waterCancelRequest);
-        WaterCancelResponse waterCancelResponse = new WaterCancelResponse(
-                waterCancelRequest.brewId()
-        );
+        WaterCancelResponse waterCancelResponse;
+        try {
+            waterCancelResponse = waterService.cancelWater(waterCancelRequest);
+        } catch (DataIntegrityViolationException e) {
+            // retry in case of concurrent request
+            waterCancelResponse = waterService.cancelWater(waterCancelRequest);
+        }
         kafkaTemplate.send(waterCancelledTopic, objectMapper.writeValueAsString(waterCancelResponse));
     }
 }
