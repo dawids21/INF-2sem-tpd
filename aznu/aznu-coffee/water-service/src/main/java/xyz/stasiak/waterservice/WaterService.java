@@ -1,29 +1,32 @@
 package xyz.stasiak.waterservice;
 
-import org.springframework.kafka.annotation.KafkaListener;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class WaterService {
 
-    @KafkaListener(topics = "${kafka.topic.water-requested}")
-    public void handleWaterRequested(String message) {
-        System.out.println("Water requested: " + message);
+    private final WaterOrderRepository waterOrderRepository;
+
+    @Transactional
+    public void prepareWater(WaterPrepareRequest request) {
+        try {
+            WaterOrder waterOrder = waterOrderRepository.findByBrewIdForUpdate(request.brewId())
+                    .orElse(new WaterOrder(request.brewId(), request.volume(), request.temperature()));
+            waterOrder.prepare();
+            waterOrderRepository.save(waterOrder);
+        } catch (InterruptedException e) {
+            throw new WaterException(request.brewId(), "InterruptedException", e);
+        }
     }
 
-    @KafkaListener(topics = "${kafka.topic.water-prepared}")
-    public void handleWaterPrepared(String message) {
-        System.out.println("Water prepared: " + message);
+    @Transactional
+    public void cancelWater(WaterCancelRequest request) {
+        WaterOrder waterOrder = waterOrderRepository.findByBrewIdForUpdate(request.brewId())
+                .orElse(new WaterOrder(request.brewId(), 0, 0));
+        waterOrder.cancel();
+        waterOrderRepository.save(waterOrder);
     }
-
-    @KafkaListener(topics = "${kafka.topic.water-cancel-requested}")
-    public void handleWaterCancelRequested(String message) {
-        System.out.println("Water cancel requested: " + message);
-    }
-
-    @KafkaListener(topics = "${kafka.topic.water-cancelled}")
-    public void handleWaterCancelled(String message) {
-        System.out.println("Water cancelled: " + message);
-    }
-
 }
