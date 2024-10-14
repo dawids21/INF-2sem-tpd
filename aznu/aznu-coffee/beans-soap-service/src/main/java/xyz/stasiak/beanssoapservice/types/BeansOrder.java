@@ -45,6 +45,10 @@ public class BeansOrder {
     }
 
     public void cancel() {
+        if (status == Status.CANCELED) {
+            return;
+        }
+        log.info("Cancelling beans for brew {}", brewId);
         this.status = Status.CANCELED;
     }
 

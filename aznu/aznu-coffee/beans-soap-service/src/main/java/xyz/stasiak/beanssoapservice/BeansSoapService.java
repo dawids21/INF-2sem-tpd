@@ -20,22 +20,26 @@ public class BeansSoapService {
 
     @SneakyThrows
     public BeansSoapGrindResponse grindBeans(BeansSoapGrindRequest beansSoapGrindRequest) {
+        log.info("Received grind request: {}", beansSoapGrindRequest);
         BeansSoapGrindResponse beansSoapGrindResponse;
         try {
             beansSoapGrindResponse = beansGrindService.grindBeans(beansSoapGrindRequest);
         } catch (DataIntegrityViolationException e) {
             // retry in case of concurrent modification
+            log.info("Retrying grind request");
             beansSoapGrindResponse = beansGrindService.grindBeans(beansSoapGrindRequest);
         }
         return beansSoapGrindResponse;
     }
 
     public BeansSoapCancelResponse cancelBeans(BeansSoapCancelRequest beansSoapCancelRequest) {
+        log.info("Received cancel request: {}", beansSoapCancelRequest);
         BeansSoapCancelResponse beansSoapCancelResponse;
         try {
             beansSoapCancelResponse = beansGrindService.cancelBeans(beansSoapCancelRequest);
         } catch (DataIntegrityViolationException e) {
             // retry in case of concurrent modification
+            log.info("Retrying cancel request");
             beansSoapCancelResponse = beansGrindService.cancelBeans(beansSoapCancelRequest);
         }
         return beansSoapCancelResponse;

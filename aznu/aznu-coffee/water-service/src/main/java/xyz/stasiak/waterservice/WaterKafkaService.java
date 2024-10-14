@@ -30,6 +30,7 @@ public class WaterKafkaService {
 
     @KafkaListener(topics = "${kafka.topic.water-requested}")
     public void handleWaterRequested(String message) throws JsonProcessingException, InterruptedException {
+        log.info("Received message: {}", message);
         try {
             WaterPrepareRequest waterPrepareRequest = objectMapper.readValue(message, WaterPrepareRequest.class);
             WaterPrepareResponse waterPrepareResponse ;
@@ -37,8 +38,10 @@ public class WaterKafkaService {
                 waterPrepareResponse = waterService.prepareWater(waterPrepareRequest);
             } catch (DataIntegrityViolationException e) {
                 // retry in case of concurrent request
+                log.info("Retrying prepare water request");
                 waterPrepareResponse = waterService.prepareWater(waterPrepareRequest);
             }
+            log.info("Sending prepare response: {}", waterPrepareResponse);
             kafkaTemplate.send(waterPreparedTopic, objectMapper.writeValueAsString(waterPrepareResponse));
         } catch (WaterException e) {
             log.error("Error while preparing water", e);
@@ -49,14 +52,17 @@ public class WaterKafkaService {
 
     @KafkaListener(topics = "${kafka.topic.water-cancel-requested}")
     public void handleWaterCancelRequested(String message) throws JsonProcessingException {
+        log.info("Received message: {}", message);
         WaterCancelRequest waterCancelRequest = objectMapper.readValue(message, WaterCancelRequest.class);
         WaterCancelResponse waterCancelResponse;
         try {
             waterCancelResponse = waterService.cancelWater(waterCancelRequest);
         } catch (DataIntegrityViolationException e) {
             // retry in case of concurrent request
+            log.info("Retrying cancel water request");
             waterCancelResponse = waterService.cancelWater(waterCancelRequest);
         }
+        log.info("Sending cancel response: {}", waterCancelResponse);
         kafkaTemplate.send(waterCancelledTopic, objectMapper.writeValueAsString(waterCancelResponse));
     }
 }
