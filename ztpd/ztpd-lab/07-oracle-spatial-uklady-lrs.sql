@@ -23,3 +23,7 @@ where sar.id = (with koszalin_geom as (select geom
 select sdo_geom.sdo_length(geom, 1, 'unit=km') as distance,
        st_linestring(geom).st_numpoints()         st_numpoints
 from a6_lrs;
+
+-- zad d
+update a6_lrs
+set geom = sdo_lrs.convert_to_lrs_geom(geom, 0, sdo_geom.sdo_length(geom, 1, 'unit=km'));
