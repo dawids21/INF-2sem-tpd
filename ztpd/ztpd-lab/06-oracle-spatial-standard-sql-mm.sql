@@ -29,6 +29,9 @@ from ztpd.major_cities;
 
 -- cw 2
 -- zad a
+select mcb.stgeom.st_srid() as srid
+from myst_country_boundaries mcb
+fetch first row only;
 insert into myst_major_cities
 values ('PL', 'Szczyrk', st_point(19.036107, 49.718655, 8307));
 
