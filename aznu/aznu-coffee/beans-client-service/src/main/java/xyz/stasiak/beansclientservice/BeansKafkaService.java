@@ -9,6 +9,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,9 +34,12 @@ public class BeansKafkaService {
         log.info("Received beans requested message: {}", message);
         try {
             BeansPrepareRequest beansPrepareRequest = objectMapper.readValue(message, BeansPrepareRequest.class);
-            BeansPrepareResponse beansPrepareResponse = beansService.prepareBeans(beansPrepareRequest);
-            log.info("Sending beans prepared message: {}", beansPrepareResponse);
-            kafkaTemplate.send(beansPreparedTopic, objectMapper.writeValueAsString(beansPrepareResponse));
+            Optional<BeansPrepareResponse> beansPrepareResponse = beansService.prepareBeans(beansPrepareRequest);
+            if (beansPrepareResponse.isEmpty()) {
+                return;
+            }
+            log.info("Sending beans prepared message: {}", beansPrepareResponse.get());
+            kafkaTemplate.send(beansPreparedTopic, objectMapper.writeValueAsString(beansPrepareResponse.get()));
         } catch (BeansException e) {
             log.error("Error while preparing beans", e);
             BeansErrorMessage beansErrorMessage = new BeansErrorMessage(e.getBrewId(), e.getMessage());
@@ -46,9 +51,11 @@ public class BeansKafkaService {
     public void handleBeansCancelRequested(String message) throws JsonProcessingException {
         log.info("Received beans cancel requested message: {}", message);
         BeansCancelRequest beansCancelRequest = objectMapper.readValue(message, BeansCancelRequest.class);
-        BeansCancelResponse beansCancelResponse;
-        beansCancelResponse = beansService.cancelBeans(beansCancelRequest);
-        log.info("Sending beans cancelled message: {}", beansCancelResponse);
-        kafkaTemplate.send(beansCancelledTopic, objectMapper.writeValueAsString(beansCancelResponse));
+        Optional<BeansCancelResponse> beansCancelResponse = beansService.cancelBeans(beansCancelRequest);
+        if (beansCancelResponse.isEmpty()) {
+            return;
+        }
+        log.info("Sending beans cancelled message: {}", beansCancelResponse.get());
+        kafkaTemplate.send(beansCancelledTopic, objectMapper.writeValueAsString(beansCancelResponse.get()));
     }
 }

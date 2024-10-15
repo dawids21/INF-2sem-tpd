@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import xyz.stasiak.beanssoapservice.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -14,19 +15,29 @@ public class BeansService {
 
     private final BeansSoapService beansSoapService;
 
-    public BeansPrepareResponse prepareBeans(BeansPrepareRequest request) {
+    public Optional<BeansPrepareResponse> prepareBeans(BeansPrepareRequest request) {
         BeansSoapGrindRequest beansSoapGrindRequest = new BeansSoapGrindRequest();
         beansSoapGrindRequest.setBrewId(request.brewId().toString());
         beansSoapGrindRequest.setName(request.name());
         beansSoapGrindRequest.setWeight(request.weight());
         BeansSoapGrindResponse beansSoapGrindResponse = beansSoapService.grindBeans(beansSoapGrindRequest);
-        return new BeansPrepareResponse(UUID.fromString(beansSoapGrindResponse.getBrewId()), beansSoapGrindResponse.getName(), beansSoapGrindResponse.getWeight());
+        if (!beansSoapGrindResponse.isSuccess()) {
+            return Optional.empty();
+        }
+        return Optional.of(
+                new BeansPrepareResponse(UUID.fromString(beansSoapGrindResponse.getBrewId()), beansSoapGrindResponse.getName(), beansSoapGrindResponse.getWeight())
+        );
     }
 
-    public BeansCancelResponse cancelBeans(BeansCancelRequest request) {
+    public Optional<BeansCancelResponse> cancelBeans(BeansCancelRequest request) {
         BeansSoapCancelRequest beansSoapCancelRequest = new BeansSoapCancelRequest();
         beansSoapCancelRequest.setBrewId(request.brewId().toString());
         BeansSoapCancelResponse beansSoapCancelResponse = beansSoapService.cancelBeans(beansSoapCancelRequest);
-        return new BeansCancelResponse(UUID.fromString(beansSoapCancelResponse.getBrewId()));
+        if (!beansSoapCancelResponse.isSuccess()) {
+            return Optional.empty();
+        }
+        return Optional.of(
+                new BeansCancelResponse(UUID.fromString(beansSoapCancelResponse.getBrewId()))
+        );
     }
 }

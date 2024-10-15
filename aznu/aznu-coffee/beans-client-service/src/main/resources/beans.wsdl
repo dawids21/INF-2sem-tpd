@@ -34,6 +34,7 @@
     <xs:sequence>
       <xs:element minOccurs="0" name="brewId" type="xs:string"/>
       <xs:element minOccurs="0" name="name" type="xs:string"/>
+      <xs:element name="success" type="xs:boolean"/>
       <xs:element name="weight" type="xs:int"/>
     </xs:sequence>
   </xs:complexType>
@@ -59,6 +60,7 @@
   <xs:complexType name="beansSoapCancelResponse">
     <xs:sequence>
       <xs:element minOccurs="0" name="brewId" type="xs:string"/>
+      <xs:element name="success" type="xs:boolean"/>
     </xs:sequence>
   </xs:complexType>
 

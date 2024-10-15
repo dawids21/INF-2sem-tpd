@@ -32,9 +32,9 @@ public class WaterOrder {
         this.status = Status.REQUESTED;
     }
 
-    public void prepare() throws InterruptedException {
+    public boolean prepare() throws InterruptedException {
         if (status == Status.CANCELLED || status == Status.PREPARED) {
-            return;
+            return false;
         }
         if (temperature > 100) {
             throw new WaterException(brewId, "Water temperature is too high");
@@ -45,14 +45,16 @@ public class WaterOrder {
         log.info("Heating water to {} degrees", temperature);
         Thread.sleep(5L * temperature);
         this.status = Status.PREPARED;
+        return true;
     }
 
-    public void cancel() {
+    public boolean cancel() {
         if (status == Status.CANCELLED) {
-            return;
+            return false;
         }
         log.info("Cancelling water for brew {}", brewId);
         this.status = Status.CANCELLED;
+        return true;
     }
 
     @Override

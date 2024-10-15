@@ -11,4 +11,5 @@ import java.util.UUID;
 @ToString
 public class BeansSoapCancelResponse {
     private UUID brewId;
+    private boolean success;
 }

@@ -10,6 +10,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -33,7 +35,7 @@ public class WaterKafkaService {
         log.info("Received message: {}", message);
         try {
             WaterPrepareRequest waterPrepareRequest = objectMapper.readValue(message, WaterPrepareRequest.class);
-            WaterPrepareResponse waterPrepareResponse ;
+            Optional<WaterPrepareResponse> waterPrepareResponse;
             try {
                 waterPrepareResponse = waterService.prepareWater(waterPrepareRequest);
             } catch (DataIntegrityViolationException e) {
@@ -41,8 +43,11 @@ public class WaterKafkaService {
                 log.info("Retrying prepare water request");
                 waterPrepareResponse = waterService.prepareWater(waterPrepareRequest);
             }
-            log.info("Sending prepare response: {}", waterPrepareResponse);
-            kafkaTemplate.send(waterPreparedTopic, objectMapper.writeValueAsString(waterPrepareResponse));
+            if (waterPrepareResponse.isEmpty()) {
+                return;
+            }
+            log.info("Sending prepare response: {}", waterPrepareResponse.get());
+            kafkaTemplate.send(waterPreparedTopic, objectMapper.writeValueAsString(waterPrepareResponse.get()));
         } catch (WaterException e) {
             log.error("Error while preparing water", e);
             WaterErrorMessage waterErrorMessage = new WaterErrorMessage(e.getBrewId(), e.getMessage());
@@ -54,7 +59,7 @@ public class WaterKafkaService {
     public void handleWaterCancelRequested(String message) throws JsonProcessingException {
         log.info("Received message: {}", message);
         WaterCancelRequest waterCancelRequest = objectMapper.readValue(message, WaterCancelRequest.class);
-        WaterCancelResponse waterCancelResponse;
+        Optional<WaterCancelResponse> waterCancelResponse;
         try {
             waterCancelResponse = waterService.cancelWater(waterCancelRequest);
         } catch (DataIntegrityViolationException e) {
@@ -62,7 +67,10 @@ public class WaterKafkaService {
             log.info("Retrying cancel water request");
             waterCancelResponse = waterService.cancelWater(waterCancelRequest);
         }
-        log.info("Sending cancel response: {}", waterCancelResponse);
-        kafkaTemplate.send(waterCancelledTopic, objectMapper.writeValueAsString(waterCancelResponse));
+        if (waterCancelResponse.isEmpty()) {
+            return;
+        }
+        log.info("Sending cancel response: {}", waterCancelResponse.get());
+        kafkaTemplate.send(waterCancelledTopic, objectMapper.writeValueAsString(waterCancelResponse.get()));
     }
 }

@@ -34,7 +34,7 @@ public class BrewOrder {
 
     public int startBrew() {
         if (status == Status.BREWING || status == Status.CANCELLED || status == Status.FINISHED) {
-            return 0;
+            return -1;
         }
         log.info("Calculating brew time for brew {}", brewId);
         int brewTime = 10 * waterVolume + 200 * beansWeight;
@@ -43,23 +43,25 @@ public class BrewOrder {
         return brewTime;
     }
 
-    public void finish() {
+    public boolean finish() {
         if (status == Status.REQUESTED) {
             throw new BrewException(brewId, "Brew not started yet");
         }
         if (status == Status.FINISHED || status == Status.CANCELLED) {
-            return;
+            return false;
         }
         log.info("Finishing brew {}", brewId);
         this.status = Status.FINISHED;
+        return true;
     }
 
-    public void cancel() {
+    public boolean cancel() {
         if (status == Status.CANCELLED) {
-            return;
+            return false;
         }
         log.info("Cancelling brew {}", brewId);
         this.status = Status.CANCELLED;
+        return true;
     }
 
     @Override

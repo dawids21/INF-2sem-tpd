@@ -32,9 +32,9 @@ public class BeansOrder {
         this.status = Status.REQUESTED;
     }
 
-    public void grind() throws InterruptedException {
+    public boolean grind() throws InterruptedException {
         if (status == Status.CANCELED || status == Status.PREPARED) {
-            return;
+            return false;
         }
         if (weight > 50) {
             throw new BeansSoapException(brewId, "Beans weight is too high");
@@ -42,14 +42,16 @@ public class BeansOrder {
         log.info("Grinding {} g of {} beans for brew {}", weight, name, brewId);
         Thread.sleep(5L * weight);
         this.status = Status.PREPARED;
+        return true;
     }
 
-    public void cancel() {
+    public boolean cancel() {
         if (status == Status.CANCELED) {
-            return;
+            return false;
         }
         log.info("Cancelling beans for brew {}", brewId);
         this.status = Status.CANCELED;
+        return true;
     }
 
     @Override
