@@ -2,14 +2,10 @@ package xyz.stasiak.beanssoapservice;
 
 import jakarta.jws.WebService;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import xyz.stasiak.beanssoapservice.types.BeansSoapCancelRequest;
-import xyz.stasiak.beanssoapservice.types.BeansSoapCancelResponse;
-import xyz.stasiak.beanssoapservice.types.BeansSoapGrindRequest;
-import xyz.stasiak.beanssoapservice.types.BeansSoapGrindResponse;
+import xyz.stasiak.beanssoapservice.types.*;
 
 @WebService
 @Service
@@ -18,8 +14,7 @@ import xyz.stasiak.beanssoapservice.types.BeansSoapGrindResponse;
 public class BeansSoapService {
     private final BeansGrindService beansGrindService;
 
-    @SneakyThrows
-    public BeansSoapGrindResponse grindBeans(BeansSoapGrindRequest beansSoapGrindRequest) {
+    public BeansSoapGrindResponse grindBeans(BeansSoapGrindRequest beansSoapGrindRequest) throws BeansSoapException {
         log.info("Received grind request: {}", beansSoapGrindRequest);
         BeansSoapGrindResponse beansSoapGrindResponse;
         try {

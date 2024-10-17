@@ -11,16 +11,15 @@ public class BeansGrindService {
     private final BeansOrderRepository beansOrderRepository;
 
     @Transactional
-    public BeansSoapGrindResponse grindBeans(BeansSoapGrindRequest request) throws InterruptedException {
+    public BeansSoapGrindResponse grindBeans(BeansSoapGrindRequest request) throws BeansSoapException {
         BeansOrder beansOrder = beansOrderRepository.findByBrewIdForUpdate(request.getBrewId())
-                .orElse(new BeansOrder(request.getBrewId(), request.getName(), request.getWeight()));
+                .orElse(new BeansOrder(request.getBrewId(), request.getName()));
         boolean result = beansOrder.grind();
         if (result) {
             beansOrderRepository.save(beansOrder);
         }
         BeansSoapGrindResponse response = new BeansSoapGrindResponse();
         response.setBrewId(beansOrder.getBrewId());
-        response.setName(beansOrder.getName());
         response.setWeight(beansOrder.getWeight());
         response.setSuccess(result);
         return response;
@@ -29,7 +28,7 @@ public class BeansGrindService {
     @Transactional
     public BeansSoapCancelResponse cancelBeans(BeansSoapCancelRequest request) {
         BeansOrder beansOrder = beansOrderRepository.findByBrewIdForUpdate(request.getBrewId())
-                .orElse(new BeansOrder(request.getBrewId(), "", 0));
+                .orElse(new BeansOrder(request.getBrewId(), ""));
         boolean result = beansOrder.cancel();
         if (result) {
             beansOrderRepository.save(beansOrder);

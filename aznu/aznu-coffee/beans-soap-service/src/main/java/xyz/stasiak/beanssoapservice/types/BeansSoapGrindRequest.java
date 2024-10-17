@@ -12,5 +12,4 @@ import java.util.UUID;
 public class BeansSoapGrindRequest {
     private UUID brewId;
     private String name;
-    private int weight;
 }

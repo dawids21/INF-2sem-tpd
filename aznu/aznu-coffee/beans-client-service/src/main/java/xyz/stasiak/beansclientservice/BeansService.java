@@ -15,17 +15,17 @@ public class BeansService {
 
     private final BeansSoapService beansSoapService;
 
-    public Optional<BeansPrepareResponse> prepareBeans(BeansPrepareRequest request) {
+    public Optional<BeansPrepareResponse> prepareBeans(BeansPrepareRequest request) throws BeansSoapException_Exception {
         BeansSoapGrindRequest beansSoapGrindRequest = new BeansSoapGrindRequest();
         beansSoapGrindRequest.setBrewId(request.brewId().toString());
         beansSoapGrindRequest.setName(request.name());
-        beansSoapGrindRequest.setWeight(request.weight());
-        BeansSoapGrindResponse beansSoapGrindResponse = beansSoapService.grindBeans(beansSoapGrindRequest);
+        BeansSoapGrindResponse beansSoapGrindResponse;
+        beansSoapGrindResponse = beansSoapService.grindBeans(beansSoapGrindRequest);
         if (!beansSoapGrindResponse.isSuccess()) {
             return Optional.empty();
         }
         return Optional.of(
-                new BeansPrepareResponse(UUID.fromString(beansSoapGrindResponse.getBrewId()), beansSoapGrindResponse.getName(), beansSoapGrindResponse.getWeight())
+                new BeansPrepareResponse(UUID.fromString(beansSoapGrindResponse.getBrewId()), beansSoapGrindResponse.getWeight())
         );
     }
 

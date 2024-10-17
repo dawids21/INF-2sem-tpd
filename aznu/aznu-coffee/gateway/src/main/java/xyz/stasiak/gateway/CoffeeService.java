@@ -1,13 +1,23 @@
 package xyz.stasiak.gateway;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.stereotype.Component;
+import xyz.stasiak.gateway.models.beans.BeansErrorMessage;
 import xyz.stasiak.gateway.models.beans.BeansPrepareRequest;
+import xyz.stasiak.gateway.models.beans.BeansPrepareResponse;
+import xyz.stasiak.gateway.models.brew.BrewFinishResponse;
+import xyz.stasiak.gateway.models.brew.BrewStartRequest;
+import xyz.stasiak.gateway.models.brew.BrewStartResponse;
+import xyz.stasiak.gateway.models.water.WaterErrorMessage;
 import xyz.stasiak.gateway.models.water.WaterPrepareRequest;
+import xyz.stasiak.gateway.models.water.WaterPrepareResponse;
 
 import java.util.UUID;
 
@@ -32,6 +42,9 @@ public class CoffeeService extends RouteBuilder {
     @Value("${kafka.topic.water-cancelled}")
     private String waterCancelledTopic;
 
+    @Value("${kafka.topic.water-error}")
+    private String waterErrorTopic;
+
     @Value("${kafka.topic.beans-requested}")
     private String beansRequestedTopic;
 
@@ -44,11 +57,34 @@ public class CoffeeService extends RouteBuilder {
     @Value("${kafka.topic.beans-cancelled}")
     private String beansCancelledTopic;
 
+    @Value("${kafka.topic.beans-error}")
+    private String beansErrorTopic;
+
+    @Value("${kafka.topic.brew-requested}")
+    private String brewRequestedTopic;
+
+    @Value("${kafka.topic.brew-started}")
+    private String brewStartedTopic;
+
+    @Value("${kafka.topic.brew-finished}")
+    private String brewFinishedTopic;
+
+    @Value("${kafka.topic.brew-cancel-requested}")
+    private String brewCancelRequestedTopic;
+
+    @Value("${kafka.topic.brew-cancelled}")
+    private String brewCancelledTopic;
+
+    @Value("${kafka.topic.brew-error}")
+    private String brewErrorTopic;
+
+
     @Override
     public void configure() throws Exception {
         gateway();
         water();
         beans();
+        brew();
     }
 
     public void gateway() {
@@ -71,15 +107,20 @@ public class CoffeeService extends RouteBuilder {
                 .post("/make").description("Make coffee").type(CoffeeMakeRequest.class).outType(CoffeeMakeResponse.class)
                 .param().name("body").type(RestParamType.body).description("Coffee parameters to make").endParam()
                 .responseMessage().code(200).message("Coffee making started").endResponseMessage()
-                .to("direct:add-coffee-order");
+                .to("direct:add-coffee-order")
+                .get("/status/{orderId}").description("Get coffee status").outType(CoffeeOrder.class)
+                .param().name("orderId").type(RestParamType.path).description("Order id").endParam()
+                .responseMessage().code(200).message("Coffee status").endResponseMessage()
+                .responseMessage().code(404).message("Order not found").endResponseMessage()
+                .to("direct:get-coffee-status");
 
         from("direct:add-coffee-order")
                 .routeId("make-coffee")
-                .log("(${routeId}) Request received")
+                .log("(${routeId}) () Request received")
                 .process(exchange -> {
                     CoffeeMakeRequest request = exchange.getMessage().getBody(CoffeeMakeRequest.class);
                     UUID orderId = UUID.randomUUID();
-                    CoffeeOrder coffeeOrder = new CoffeeOrder(orderId, request.beansWeight(), request.beansName(), request.waterVolume(), request.waterTemperature());
+                    CoffeeOrder coffeeOrder = new CoffeeOrder(orderId, request.beansName(), request.waterTemperature());
                     coffeeOrderRepository.save(coffeeOrder);
                     exchange.getMessage().setHeader("orderId", orderId.toString());
                 })
@@ -89,13 +130,13 @@ public class CoffeeService extends RouteBuilder {
 
         from("direct:send-kafka-coffee-request")
                 .routeId("send-kafka-coffee-request")
-                .log("(${routeId}) Sending order to Kafka")
+                .log("(${routeId}) (${header.orderId}) Sending request to Kafka")
                 .marshal().json()
                 .to("kafka:" + coffeeRequestedTopic);
 
         from("direct:make-coffee-response")
                 .routeId("make-coffee-response")
-                .log("(${routeId}) Sending response")
+                .log("(${routeId}) (${header.orderId}) Sending response")
                 .process(exchange -> {
                     String orderId = exchange.getMessage().getHeader("orderId", String.class);
                     exchange.getMessage().setBody(new CoffeeMakeResponse(UUID.fromString(orderId)));
@@ -103,22 +144,62 @@ public class CoffeeService extends RouteBuilder {
 
         from("kafka:" + coffeeRequestedTopic)
                 .routeId("coffee-requested")
-                .log("(${routeId}) Coffee requested")
+                .log("(${routeId}) (${header.orderId}) Coffee request received")
                 .unmarshal().json(CoffeeMakeRequest.class)
                 .multicast()
                 .to("direct:" + waterRequestedTopic)
                 .to("direct:" + beansRequestedTopic);
+
+        from("direct:get-coffee-status")
+                .routeId("get-coffee-status")
+                .log("(${routeId}) (${header.orderId}) Getting coffee status")
+                .transacted()
+                .process(exchange -> {
+                    String orderId = exchange.getMessage().getHeader("orderId", String.class);
+                    CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(UUID.fromString(orderId));
+                    if (coffeeOrder == null) {
+                        exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+                        ProblemDetail orderNotFound = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Order not found");
+                        exchange.getMessage().setBody(orderNotFound);
+                    } else {
+                        exchange.getMessage().setBody(CoffeeOrderResponse.fromCoffeeOrder(coffeeOrder));
+                    }
+                });
+
+        from("direct:compensate-water-beans")
+                .routeId("compensate-water-beans")
+                .log("(${routeId}) (${header.orderId}) Starting compensation")
+                .transacted()
+                .process(exchange -> {
+                    //TODO
+//                    String orderId = exchange.getMessage().getHeader("orderId", String.class);
+//                    CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(UUID.fromString(orderId));
+//                    if (coffeeOrder.isBeansReady()) {
+//                        exchange.getMessage().setHeader("orderId", orderId);
+//                        exchange.getMessage().setBody(new BrewErrorMessage(UUID.fromString(orderId), "Brew cancelled"));
+//                        exchange.getMessage().setHeader("isBeansReady", true);
+//                        exchange.getMessage().setHeader("isWaterReady", false);
+//                    } else if (coffeeOrder.isWaterReady()) {
+//                        exchange.getMessage().setHeader("orderId", orderId);
+//                        exchange.getMessage().setBody(new WaterErrorMessage(UUID.fromString(orderId), "Water cancelled"));
+//                        exchange.getMessage().setHeader("isBeansReady", false);
+//                        exchange.getMessage().setHeader("isWaterReady", true);
+//                    } else {
+//                        exchange.getMessage().setHeader("isBeansReady", false);
+//                        exchange.getMessage().setHeader("isWaterReady", false);
+//                    }
+                });
     }
 
     public void water() {
         from("direct:" + waterRequestedTopic)
                 .routeId(waterRequestedTopic)
-                .log("(${routeId}) Sending water request")
+                .log("(${routeId}) (${header.orderId}) Sending water request")
                 .transacted()
                 .process(exchange -> {
                     String orderId = exchange.getMessage().getHeader("orderId", String.class);
                     CoffeeMakeRequest request = exchange.getMessage().getBody(CoffeeMakeRequest.class);
-                    WaterPrepareRequest waterRequest = new WaterPrepareRequest(UUID.fromString(orderId), request.waterVolume(), request.waterTemperature());
+                    WaterPrepareRequest waterRequest = new WaterPrepareRequest(UUID.fromString(orderId), request.waterTemperature());
                     exchange.getMessage().setBody(waterRequest);
                 })
                 .marshal().json()
@@ -126,21 +207,52 @@ public class CoffeeService extends RouteBuilder {
                 .process(exchange -> {
                     String orderId = exchange.getMessage().getHeader("orderId", String.class);
                     CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(UUID.fromString(orderId));
-                    coffeeOrder.setWaterStatus(CoffeeOrder.Status.IN_PROGRESS);
+                    coffeeOrder.setWaterInProgress();
                     coffeeOrderRepository.save(coffeeOrder);
                 });
+
+        from("kafka:" + waterPreparedTopic)
+                .routeId(waterPreparedTopic)
+                .unmarshal().json(WaterPrepareResponse.class)
+                .log("(${routeId}) (${body.brewId}) Water prepared received")
+                .transacted()
+                .process(exchange -> {
+                    WaterPrepareResponse response = exchange.getMessage().getBody(WaterPrepareResponse.class);
+                    CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(response.brewId());
+                    coffeeOrder.setWaterReady(response.volume());
+                    exchange.getMessage().setHeader("isWaterAndBeansReady", coffeeOrder.isWaterAndBeansReady());
+                    exchange.getMessage().setHeader("orderId", coffeeOrder.getOrderId().toString());
+                    coffeeOrderRepository.save(coffeeOrder);
+                })
+                .choice()
+                .when(header("isWaterAndBeansReady").isEqualTo(true)).to("direct:" + brewRequestedTopic)
+                .endChoice();
+
+        from("kafka:" + waterErrorTopic)
+                .routeId(waterErrorTopic)
+                .unmarshal().json(WaterErrorMessage.class)
+                .log("(${routeId}) (${body.brewId}) Water error received: ${body.message}")
+                .transacted()
+                .process(exchange -> {
+                    WaterErrorMessage errorMessage = exchange.getMessage().getBody(WaterErrorMessage.class);
+                    CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(errorMessage.brewId());
+                    coffeeOrder.setWaterCancelled(errorMessage.message());
+                    exchange.getMessage().setHeader("orderId", coffeeOrder.getOrderId().toString());
+                    coffeeOrderRepository.save(coffeeOrder);
+                })
+                .to("direct:compensate-water-beans");
 
     }
 
     public void beans() {
         from("direct:" + beansRequestedTopic)
                 .routeId(beansRequestedTopic)
-                .log("(${routeId}) Sending beans request")
+                .log("(${routeId}) (${header.orderId}) Sending beans request")
                 .transacted()
                 .process(exchange -> {
                     String orderId = exchange.getMessage().getHeader("orderId", String.class);
                     CoffeeMakeRequest request = exchange.getMessage().getBody(CoffeeMakeRequest.class);
-                    BeansPrepareRequest beansRequest = new BeansPrepareRequest(UUID.fromString(orderId), request.beansName(), request.beansWeight());
+                    BeansPrepareRequest beansRequest = new BeansPrepareRequest(UUID.fromString(orderId), request.beansName());
                     exchange.getMessage().setBody(beansRequest);
                 })
                 .marshal().json()
@@ -148,7 +260,77 @@ public class CoffeeService extends RouteBuilder {
                 .process(exchange -> {
                     String orderId = exchange.getMessage().getHeader("orderId", String.class);
                     CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(UUID.fromString(orderId));
-                    coffeeOrder.setBeansStatus(CoffeeOrder.Status.IN_PROGRESS);
+                    coffeeOrder.setBeansInProgress();
+                    coffeeOrderRepository.save(coffeeOrder);
+                });
+
+        from("kafka:" + beansPreparedTopic)
+                .routeId(beansPreparedTopic)
+                .unmarshal().json(BeansPrepareResponse.class)
+                .log("(${routeId}) (${body.brewId}) Beans prepared received")
+                .transacted()
+                .process(exchange -> {
+                    BeansPrepareResponse response = exchange.getMessage().getBody(BeansPrepareResponse.class);
+                    CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(response.brewId());
+                    coffeeOrder.setBeansReady(response.weight());
+                    exchange.getMessage().setHeader("isWaterAndBeansReady", coffeeOrder.isWaterAndBeansReady());
+                    exchange.getMessage().setHeader("orderId", coffeeOrder.getOrderId().toString());
+                    coffeeOrderRepository.save(coffeeOrder);
+                })
+                .choice()
+                .when(header("isWaterAndBeansReady").isEqualTo(true)).to("direct:" + brewRequestedTopic)
+                .endChoice();
+
+        from("kafka:" + beansErrorTopic)
+                .routeId(beansErrorTopic)
+                .unmarshal().json(BeansErrorMessage.class)
+                .log("(${routeId}) (${body.brewId}) Beans error received: ${body.message}")
+                .transacted()
+                .process(exchange -> {
+                    BeansErrorMessage errorMessage = exchange.getMessage().getBody(BeansErrorMessage.class);
+                    CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(errorMessage.brewId());
+                    coffeeOrder.setBeansCancelled(errorMessage.message());
+                    exchange.getMessage().setHeader("orderId", coffeeOrder.getOrderId().toString());
+                    coffeeOrderRepository.save(coffeeOrder);
+                })
+                .to("direct:compensate-water-beans");
+    }
+
+    private void brew() {
+        from("direct:" + brewRequestedTopic)
+                .routeId(brewRequestedTopic)
+                .log("(${routeId}) (${header.orderId}) Sending brew request")
+                .transacted()
+                .process(exchange -> {
+                    String orderId = exchange.getMessage().getHeader("orderId", String.class);
+                    CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(UUID.fromString(orderId));
+                    BrewStartRequest brewStartRequest = new BrewStartRequest(UUID.fromString(orderId), coffeeOrder.getWaterVolume(), coffeeOrder.getBeansWeight());
+                    exchange.getMessage().setBody(brewStartRequest);
+                })
+                .marshal().json()
+                .to("kafka:" + brewRequestedTopic);
+
+        from("kafka:" + brewStartedTopic)
+                .routeId(brewStartedTopic)
+                .unmarshal().json(BrewStartResponse.class)
+                .log("(${routeId}) (${body.brewId}) Brew started received")
+                .transacted()
+                .process(exchange -> {
+                    BrewStartResponse response = exchange.getMessage().getBody(BrewStartResponse.class);
+                    CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(response.brewId());
+                    coffeeOrder.setBrewInProgress(response.timeOfBrewing());
+                    coffeeOrderRepository.save(coffeeOrder);
+                });
+
+        from("kafka:" + brewFinishedTopic)
+                .routeId(brewFinishedTopic)
+                .unmarshal().json(BrewFinishResponse.class)
+                .log("(${routeId}) (${body.brewId}) Brew finished received")
+                .transacted()
+                .process(exchange -> {
+                    BrewFinishResponse response = exchange.getMessage().getBody(BrewFinishResponse.class);
+                    CoffeeOrder coffeeOrder = coffeeOrderRepository.findByOrderId(response.brewId());
+                    coffeeOrder.setBrewReady();
                     coffeeOrderRepository.save(coffeeOrder);
                 });
     }

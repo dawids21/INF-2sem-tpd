@@ -25,9 +25,9 @@ public class WaterOrder {
     protected WaterOrder() {
     }
 
-    public WaterOrder(UUID brewId, int volume, int temperature) {
+    public WaterOrder(UUID brewId, int temperature) {
         this.brewId = brewId;
-        this.volume = volume;
+        this.volume = temperature * 2;
         this.temperature = temperature;
         this.status = Status.REQUESTED;
     }

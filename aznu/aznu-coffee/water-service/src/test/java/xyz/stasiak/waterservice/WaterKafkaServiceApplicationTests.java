@@ -48,7 +48,7 @@ class WaterKafkaServiceApplicationTests {
     @Test
     void testWaterPrepare() throws JsonProcessingException {
         UUID brewId = UUID.randomUUID();
-        WaterPrepareRequest request = new WaterPrepareRequest(brewId, 100, 90);
+        WaterPrepareRequest request = new WaterPrepareRequest(brewId, 90);
         kafkaTemplate.send(waterRequestedTopic, objectMapper.writeValueAsString(request));
 
         await().atMost(Durations.TEN_SECONDS).untilAsserted(() -> {

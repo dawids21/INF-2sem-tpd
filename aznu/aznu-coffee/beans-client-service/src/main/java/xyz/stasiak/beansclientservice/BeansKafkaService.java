@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import xyz.stasiak.beanssoapservice.BeansSoapException_Exception;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -40,9 +42,9 @@ public class BeansKafkaService {
             }
             log.info("Sending beans prepared message: {}", beansPrepareResponse.get());
             kafkaTemplate.send(beansPreparedTopic, objectMapper.writeValueAsString(beansPrepareResponse.get()));
-        } catch (BeansException e) {
+        } catch (BeansSoapException_Exception e) {
             log.error("Error while preparing beans", e);
-            BeansErrorMessage beansErrorMessage = new BeansErrorMessage(e.getBrewId(), e.getMessage());
+            BeansErrorMessage beansErrorMessage = new BeansErrorMessage(UUID.fromString(e.getFaultInfo().getBrewId()), e.getMessage());
             kafkaTemplate.send(beansErrorTopic, objectMapper.writeValueAsString(beansErrorMessage));
         }
     }

@@ -25,22 +25,26 @@ public class BeansOrder {
     protected BeansOrder() {
     }
 
-    public BeansOrder(UUID brewId, String name, int weight) {
+    public BeansOrder(UUID brewId, String name) {
         this.brewId = brewId;
         this.name = name;
-        this.weight = weight;
+        this.weight = name.length() * 3;
         this.status = Status.REQUESTED;
     }
 
-    public boolean grind() throws InterruptedException {
+    public boolean grind() throws BeansSoapException {
         if (status == Status.CANCELED || status == Status.PREPARED) {
             return false;
         }
-        if (weight > 50) {
-            throw new BeansSoapException(brewId, "Beans weight is too high");
+        if (name.equalsIgnoreCase("colombia")) {
+            throw new BeansSoapException(brewId, "Oops! Colombia beans are on vacation!");
         }
         log.info("Grinding {} g of {} beans for brew {}", weight, name, brewId);
-        Thread.sleep(5L * weight);
+        try {
+            Thread.sleep(5L * weight);
+        } catch (InterruptedException e) {
+            log.error("Grinding interrupted for brew {}", brewId);
+        }
         this.status = Status.PREPARED;
         return true;
     }

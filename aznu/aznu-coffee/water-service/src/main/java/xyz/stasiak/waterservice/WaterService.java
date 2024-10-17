@@ -15,21 +15,21 @@ public class WaterService {
     @Transactional
     public Optional<WaterPrepareResponse> prepareWater(WaterPrepareRequest request) throws InterruptedException {
         WaterOrder waterOrder = waterOrderRepository.findByBrewIdForUpdate(request.brewId())
-                .orElse(new WaterOrder(request.brewId(), request.volume(), request.temperature()));
+                .orElse(new WaterOrder(request.brewId(), request.temperature()));
         boolean result = waterOrder.prepare();
         if (!result) {
             return Optional.empty();
         }
         waterOrderRepository.save(waterOrder);
         return Optional.of(
-                new WaterPrepareResponse(waterOrder.getBrewId(), waterOrder.getVolume(), waterOrder.getTemperature())
+                new WaterPrepareResponse(waterOrder.getBrewId(), waterOrder.getVolume())
         );
     }
 
     @Transactional
     public Optional<WaterCancelResponse> cancelWater(WaterCancelRequest request) {
         WaterOrder waterOrder = waterOrderRepository.findByBrewIdForUpdate(request.brewId())
-                .orElse(new WaterOrder(request.brewId(), 0, 0));
+                .orElse(new WaterOrder(request.brewId(), 0));
         boolean result = waterOrder.cancel();
         if (!result) {
             return Optional.empty();

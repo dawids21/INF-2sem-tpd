@@ -11,7 +11,6 @@ import java.util.UUID;
 @ToString
 public class BeansSoapGrindResponse {
     private UUID brewId;
-    private String name;
     private int weight;
     private boolean success;
 }
