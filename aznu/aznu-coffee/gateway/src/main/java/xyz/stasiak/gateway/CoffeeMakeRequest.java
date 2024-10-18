@@ -7,6 +7,6 @@ public record CoffeeMakeRequest(
         @NotBlank(message = "Beans name must not be blank")
         String beansName,
         @Positive(message = "Water temperature must be positive")
-        int waterTemperature
+        Integer waterTemperature
 ) {
 }

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Coffee Maker</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <h1>Make Your Coffee</h1>
+    <form action="#" th:action="@{/coffee}" th:object="${coffeeMakeRequest}" method="post">
+        <label for="beans-name">Beans name:</label>
+        <input type="text" id="beans-name" th:field="*{beansName}" />
+        <br/>
+        <label for="water-temperature">Water temperature:</label>
+        <input type="number" id="water-temperature" th:field="*{waterTemperature}" />
+        <br/>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
