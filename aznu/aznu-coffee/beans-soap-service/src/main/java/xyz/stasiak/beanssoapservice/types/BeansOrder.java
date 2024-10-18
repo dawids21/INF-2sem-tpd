@@ -20,6 +20,7 @@ public class BeansOrder {
     private UUID brewId;
     private String name;
     private int weight;
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     protected BeansOrder() {

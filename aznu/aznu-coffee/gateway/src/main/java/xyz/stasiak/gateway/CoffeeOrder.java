@@ -29,8 +29,11 @@ public class CoffeeOrder {
     private Integer waterVolume;
     private Integer waterTemperature;
     private Integer timeOfBrewing;
+    @Enumerated(EnumType.STRING)
     private Status brewStatus;
+    @Enumerated(EnumType.STRING)
     private Status waterStatus;
+    @Enumerated(EnumType.STRING)
     private Status beansStatus;
     @Type(JsonType.class)
     @Column(columnDefinition = "jsonb")
@@ -71,6 +74,17 @@ public class CoffeeOrder {
         this.waterStatus = Status.READY;
     }
 
+    public void setWaterCancelled() {
+        if (this.waterStatus == Status.PENDING) {
+            throw new IllegalStateException("() (" + orderId + ") Water is not in progress");
+        }
+        if (this.waterStatus == Status.CANCELLED) {
+            log.warn("() ({}) Water is already cancelled", orderId);
+            return;
+        }
+        this.waterStatus = Status.CANCELLED;
+    }
+
     public void setWaterCancelled(String reason) {
         if (this.waterStatus == Status.PENDING) {
             throw new IllegalStateException("() (" + orderId + ") Water is not in progress");
@@ -81,6 +95,10 @@ public class CoffeeOrder {
         }
         reasons.add(reason);
         this.waterStatus = Status.CANCELLED;
+    }
+
+    public boolean isWaterCancelled() {
+        return this.waterStatus == Status.CANCELLED;
     }
 
     public void setBeansInProgress() {
@@ -106,6 +124,17 @@ public class CoffeeOrder {
         this.beansStatus = Status.READY;
     }
 
+    public void setBeansCancelled() {
+        if (this.beansStatus == Status.PENDING) {
+            throw new IllegalStateException("() (" + orderId + ") Beans are not in progress");
+        }
+        if (this.beansStatus == Status.CANCELLED) {
+            log.warn("() ({}) Beans are already cancelled", orderId);
+            return;
+        }
+        this.beansStatus = Status.CANCELLED;
+    }
+
     public void setBeansCancelled(String reason) {
         if (this.beansStatus == Status.PENDING) {
             throw new IllegalStateException("() (" + orderId + ") Beans are not in progress");
@@ -116,6 +145,10 @@ public class CoffeeOrder {
         }
         reasons.add(reason);
         this.beansStatus = Status.CANCELLED;
+    }
+
+    public boolean isBeansCancelled() {
+        return this.beansStatus == Status.CANCELLED;
     }
 
     public void setBrewInProgress(int timeOfBrewing) {

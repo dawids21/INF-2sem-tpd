@@ -1,4 +1,12 @@
 package xyz.stasiak.gateway;
 
-public record CoffeeMakeRequest(String beansName, int waterTemperature) {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+
+public record CoffeeMakeRequest(
+        @NotBlank(message = "Beans name must not be blank")
+        String beansName,
+        @Positive(message = "Water temperature must be positive")
+        int waterTemperature
+) {
 }

@@ -20,6 +20,7 @@ public class WaterOrder {
     private UUID brewId;
     private int volume;
     private int temperature;
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     protected WaterOrder() {
