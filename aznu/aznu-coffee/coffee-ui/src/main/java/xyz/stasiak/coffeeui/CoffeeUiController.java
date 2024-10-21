@@ -3,7 +3,6 @@ package xyz.stasiak.coffeeui;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.parsing.Problem;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -15,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -61,7 +60,20 @@ public class CoffeeUiController {
             model.addAttribute("coffeeOrderResponse", response.getBody());
         } catch (HttpClientErrorException e) {
             log.error(e.getResponseBodyAsString());
+            ProblemDetail problemDetail = e.getResponseBodyAs(ProblemDetail.class);
+            model.addAttribute("problemDetail", problemDetail);
+            return "make";
         }
+        model.addAttribute("statusColorMap", getStatusColorMap());
         return "result";
+    }
+
+    public Map<String, String> getStatusColorMap() {
+        return Map.of(
+                "Pending", "text-warning",
+                "In progress", "text-primary",
+                "Ready", "text-success",
+                "Cancelled", "text-danger"
+        );
     }
 }

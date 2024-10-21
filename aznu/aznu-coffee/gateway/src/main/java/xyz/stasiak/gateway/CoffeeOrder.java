@@ -219,9 +219,20 @@ public class CoffeeOrder {
     }
 
     public enum Status {
-        PENDING,
-        IN_PROGRESS,
-        READY,
-        CANCELLED
+        PENDING("Pending"),
+        IN_PROGRESS("In progress"),
+        READY("Ready"),
+        CANCELLED("Cancelled");
+
+        private final String value;
+
+        Status(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
     }
 }

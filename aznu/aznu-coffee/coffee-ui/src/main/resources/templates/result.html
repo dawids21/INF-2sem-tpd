@@ -3,32 +3,63 @@
 <head>
     <title>Coffee Maker</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+    <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet"/>
     <script type="text/javascript">
       function checkStatusAndRefresh() {
         const status = document.getElementById("status").innerText;
-        if (status !== "READY" && status !== "CANCELLED") {
+        if (status !== "Ready" && status !== "Cancelled") {
           window.location.reload();
         }
       }
-      setInterval(checkStatusAndRefresh, 5000); // Check and refresh every 5 seconds
+
+      setInterval(checkStatusAndRefresh, 5000);
     </script>
 </head>
-<body>
-<h1>Result</h1>
-<div th:object="${coffeeOrderResponse}">
-    <p th:if="*{beansWeight != null}">Beans weight: <span th:text="*{beansWeight}"></span></p>
-    <p th:if="*{beansName != null}">Beans name: <span th:text="*{beansName}"></span></p>
-    <p th:if="*{waterVolume != null}">Water volume: <span th:text="*{waterVolume}"></span></p>
-    <p th:if="*{waterTemperature != null}">Water temperature: <span th:text="*{waterTemperature}"></span></p>
-    <p th:if="*{timeOfBrewing != null}">Time of brewing: <span th:text="*{timeOfBrewing}"></span></p>
-    <p th:if="*{waterStatus != null}">Water status: <span th:text="*{waterStatus}"></span></p>
-    <p th:if="*{beansStatus != null}">Beans status: <span th:text="*{beansStatus}"></span></p>
-    <p th:if="*{brewStatus != null}">Brew status: <span th:text="*{brewStatus}"></span></p>
-    <p th:if="*{status != null}">Status: <span id="status" th:text="*{status}"></span></p>
-    <p th:if="*{reasons != null && !reasons.isEmpty()}">Reasons: <span th:each="reason : *{reasons}" th:text="${reason}"></span></p>
+<body class="container mt-5">
+<h1 class="text-center mb-4">Result</h1>
+<div th:object="${coffeeOrderResponse}" class="card p-4">
+    <p th:if="*{beansWeight != null}">
+        <strong>Beans weight:</strong> <span th:text="*{beansWeight} + 'g'"></span>
+    </p>
+    <p th:if="*{beansName != null}">
+        <strong>Beans name:</strong> <span th:text="*{beansName}"></span>
+    </p>
+    <p th:if="*{waterVolume != null}">
+        <strong>Water volume:</strong> <span th:text="*{waterVolume} + 'ml'"></span>
+    </p>
+    <p th:if="*{waterTemperature != null}">
+        <strong>Water temperature:</strong> <span th:text="*{waterTemperature} + '°C'"></span>
+    </p>
+    <p th:if="*{timeOfBrewing != null}">
+        <strong>Time of brewing:</strong> <span th:text="*{timeOfBrewing} + 'ms'"></span>
+    </p>
+    <p th:if="*{waterStatus != null}">
+        <strong>Water status:</strong>
+        <span th:classappend="${statusColorMap.get(coffeeOrderResponse.waterStatus)}"
+              th:text="*{waterStatus}"></span>
+    </p>
+    <p th:if="*{beansStatus != null}">
+        <strong>Beans status:</strong>
+        <span th:classappend="${statusColorMap.get(coffeeOrderResponse.beansStatus)}"
+              th:text="*{beansStatus}"></span>
+    </p>
+    <p th:if="*{brewStatus != null}">
+        <strong>Brew status:</strong>
+        <span th:classappend="${statusColorMap.get(coffeeOrderResponse.brewStatus)}"
+              th:text="*{brewStatus}"></span>
+    </p>
+    <p th:if="*{status != null}">
+        <strong>Status:</strong>
+        <span th:classappend="${statusColorMap.get(coffeeOrderResponse.status)}" id="status"
+              th:text="*{status}"></span>
+    </p>
+    <p th:if="*{reasons != null && !reasons.isEmpty()}">
+        <strong>Reasons:</strong> <span th:each="reason : *{reasons}" th:text="${reason}"></span>
+    </p>
 </div>
-<a th:href="@{/coffee/status/{brewId}(brewId=*{brewId})}">Refresh Status</a>
-<a th:href="@{/coffee}">Make Another Coffee</a>
+<div class="mt-4 text-center">
+    <a th:href="@{/coffee/status/{brewId}(brewId=*{brewId})}" class="btn btn-primary">Refresh Status</a>
+    <a th:href="@{/coffee}" class="btn btn-secondary">Make Another Coffee</a>
+</div>
 </body>
 </html>

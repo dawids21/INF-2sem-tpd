@@ -3,21 +3,23 @@
 <head>
     <title>Coffee Maker</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+    <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet"/>
 </head>
-<body>
-    <h1>Make Your Coffee</h1>
-    <div th:if="${problemDetail != null}">
+<body class="container mt-5">
+    <h1 class="text-center mb-4">Make Your Coffee</h1>
+    <div th:if="${problemDetail != null}" class="alert alert-danger">
         <p>Errors in form: <span th:text="${problemDetail.detail}"></span></p>
     </div>
-    <form action="#" th:action="@{/coffee}" th:object="${coffeeMakeRequest}" method="post">
-        <label for="beans-name">Beans name:</label>
-        <input type="text" id="beans-name" th:field="*{beansName}" />
-        <br/>
-        <label for="water-temperature">Water temperature:</label>
-        <input type="number" id="water-temperature" th:field="*{waterTemperature}" />
-        <br/>
-        <button type="submit">Submit</button>
+    <form action="#" th:action="@{/coffee}" th:object="${coffeeMakeRequest}" method="post" class="card p-4">
+        <div class="mb-3">
+            <label for="beans-name" class="form-label">Beans name:</label>
+            <input type="text" id="beans-name" th:field="*{beansName}" class="form-control"/>
+        </div>
+        <div class="mb-3">
+            <label for="water-temperature" class="form-label">Water temperature:</label>
+            <input type="number" id="water-temperature" th:field="*{waterTemperature}" class="form-control"/>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 </body>
 </html>
