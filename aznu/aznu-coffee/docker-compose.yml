@@ -24,3 +24,55 @@ services:
       - 'POSTGRES_USER=myuser'
     ports:
       - '5432:5432'
+  water-service:
+    image: aznu-coffee/water-service
+    depends_on:
+      - db
+      - kafka
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: secret
+  beans-soap-service:
+    image: aznu-coffee/beans-soap-service
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: secret
+    ports:
+      - "8082:8082"
+  beans-client-service:
+    image: aznu-coffee/beans-client-service
+    depends_on:
+      - kafka
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  brew-service:
+    image: aznu-coffee/brew-service
+    depends_on:
+      - db
+      - kafka
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: secret
+  gateway:
+    image: aznu-coffee/gateway
+    depends_on:
+      - db
+      - kafka
+    environment:
+      CAMEL_COMPONENT_KAFKA_BROKERS: kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: secret
+  coffee-ui:
+    image: aznu-coffee/coffee-ui
+    ports:
+      - "8090:8090"
+    environment:
+      COFFEE_GATEWAY_URL: http://gateway:8080
