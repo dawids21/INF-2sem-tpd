@@ -3,9 +3,13 @@
 <head>
     <title>Coffee Maker</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
 </head>
 <body>
     <h1>Make Your Coffee</h1>
+    <div th:if="${problemDetail != null}">
+        <p>Errors in form: <span th:text="${problemDetail.detail}"></span></p>
+    </div>
     <form action="#" th:action="@{/coffee}" th:object="${coffeeMakeRequest}" method="post">
         <label for="beans-name">Beans name:</label>
         <input type="text" id="beans-name" th:field="*{beansName}" />

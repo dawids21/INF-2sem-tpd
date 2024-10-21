@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Coffee Maker</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+    <script type="text/javascript">
+      function checkStatusAndRefresh() {
+        const status = document.getElementById("status").innerText;
+        if (status !== "READY" && status !== "CANCELLED") {
+          window.location.reload();
+        }
+      }
+      setInterval(checkStatusAndRefresh, 5000); // Check and refresh every 5 seconds
+    </script>
+</head>
+<body>
+<h1>Result</h1>
+<div th:object="${coffeeOrderResponse}">
+    <p th:if="*{beansWeight != null}">Beans weight: <span th:text="*{beansWeight}"></span></p>
+    <p th:if="*{beansName != null}">Beans name: <span th:text="*{beansName}"></span></p>
+    <p th:if="*{waterVolume != null}">Water volume: <span th:text="*{waterVolume}"></span></p>
+    <p th:if="*{waterTemperature != null}">Water temperature: <span th:text="*{waterTemperature}"></span></p>
+    <p th:if="*{timeOfBrewing != null}">Time of brewing: <span th:text="*{timeOfBrewing}"></span></p>
+    <p th:if="*{waterStatus != null}">Water status: <span th:text="*{waterStatus}"></span></p>
+    <p th:if="*{beansStatus != null}">Beans status: <span th:text="*{beansStatus}"></span></p>
+    <p th:if="*{brewStatus != null}">Brew status: <span th:text="*{brewStatus}"></span></p>
+    <p th:if="*{status != null}">Status: <span id="status" th:text="*{status}"></span></p>
+    <p th:if="*{reasons != null && !reasons.isEmpty()}">Reasons: <span th:each="reason : *{reasons}" th:text="${reason}"></span></p>
+</div>
+<a th:href="@{/coffee/status/{brewId}(brewId=*{brewId})}">Refresh Status</a>
+<a th:href="@{/coffee}">Make Another Coffee</a>
+</body>
+</html>
