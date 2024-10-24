@@ -12,9 +12,12 @@
         <bpmn:flowNodeRef>Task_1tzbpbe</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_1w44t0u</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_1lvsc9i</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>EndEvent_0a5nyhq</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_0iiggh9</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_1fvw4su</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_0a5nyhq</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ExclusiveGateway_10dvsxz</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>IntermediateThrowEvent_0joa4fr</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>OdebranieOdwolania</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_0038jud" name="Dziekanat">
         <bpmn:flowNodeRef>Task_13d6yj2</bpmn:flowNodeRef>
@@ -116,15 +119,12 @@
       <bpmn:incoming>SequenceFlow_1ciuin6</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0zl1idl</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_11j2coe</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_09oplzh</bpmn:outgoing>
+      <bpmn:incoming>SequenceFlow_0l9c2ze</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1mc68pe</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:endEvent id="EndEvent_0a5nyhq">
-      <bpmn:incoming>SequenceFlow_09oplzh</bpmn:incoming>
-    </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_010buov" sourceRef="StartEvent_1" targetRef="Task_1tzbpbe" />
     <bpmn:sequenceFlow id="SequenceFlow_191p0ie" sourceRef="Task_1tzbpbe" targetRef="ExclusiveGateway_1w44t0u" />
     <bpmn:sequenceFlow id="SequenceFlow_05r1xmn" name="Tak" sourceRef="ExclusiveGateway_1w44t0u" targetRef="Task_1lvsc9i" />
-    <bpmn:sequenceFlow id="SequenceFlow_09oplzh" sourceRef="Task_1lvsc9i" targetRef="EndEvent_0a5nyhq" />
     <bpmn:scriptTask id="Task_0iiggh9" name="Decyzja Negatywna" camunda:resultVariable="decyzja_czyPozytywna">
       <bpmn:extensionElements>
         <camunda:inputOutput>
@@ -185,7 +185,34 @@
       <bpmn:outgoing>SequenceFlow_0c31xt8</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_04869f6</bpmn:outgoing>
     </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_0a5nyhq">
+      <bpmn:incoming>SequenceFlow_10d8pmu</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_10dvsxz" name="Czy odwolanie?" default="SequenceFlow_10d8pmu">
+      <bpmn:incoming>SequenceFlow_1mc68pe</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_10d8pmu</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1p7wzfg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1mc68pe" sourceRef="Task_1lvsc9i" targetRef="ExclusiveGateway_10dvsxz" />
+    <bpmn:sequenceFlow id="SequenceFlow_10d8pmu" name="Nie" sourceRef="ExclusiveGateway_10dvsxz" targetRef="EndEvent_0a5nyhq" />
+    <bpmn:sequenceFlow id="SequenceFlow_1p7wzfg" sourceRef="ExclusiveGateway_10dvsxz" targetRef="IntermediateThrowEvent_0joa4fr">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${czyOdwolanie}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0joa4fr" name="Wysylanie Odwolania">
+      <bpmn:incoming>SequenceFlow_1p7wzfg</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0glawp6</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_1utmbrn" camunda:class="pl.dziekanat.tokstudiow.OdwolanieRequest" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0glawp6" sourceRef="IntermediateThrowEvent_0joa4fr" targetRef="OdebranieOdwolania" />
+    <bpmn:intermediateCatchEvent id="OdebranieOdwolania" name="Odebranie odwolania">
+      <bpmn:incoming>SequenceFlow_0glawp6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0l9c2ze</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_089tj9s" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0l9c2ze" sourceRef="OdebranieOdwolania" targetRef="Task_1lvsc9i" />
   </bpmn:process>
+  <bpmn:message id="Message_1utmbrn" name="odwolanieMsg" />
+  <bpmn:message id="Message_089tj9s" name="wynikodwolaniaMsg" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1clsc9r">
       <bpmndi:BPMNShape id="Participant_0dl5m08_di" bpmnElement="tok-studiow">
@@ -211,12 +238,8 @@
         <dc:Bounds x="926" y="38" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0a5nyhq_di" bpmnElement="EndEvent_0a5nyhq">
-        <dc:Bounds x="1076" y="60" width="36" height="36" />
+        <dc:Bounds x="1391" y="60" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_09oplzh_di" bpmnElement="SequenceFlow_09oplzh">
-        <di:waypoint x="1026" y="78" />
-        <di:waypoint x="1076" y="78" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1l4px34_di" bpmnElement="SequenceFlow_1l4px34">
         <di:waypoint x="628" y="461" />
         <di:waypoint x="673" y="461" />
@@ -363,6 +386,50 @@
         <di:waypoint x="1219" y="361" />
         <di:waypoint x="1219" y="110" />
         <di:waypoint x="1025" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_10dvsxz_di" bpmnElement="ExclusiveGateway_10dvsxz" isMarkerVisible="true">
+        <dc:Bounds x="1260" y="53" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1246" y="29" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1mc68pe_di" bpmnElement="SequenceFlow_1mc68pe">
+        <di:waypoint x="1026" y="78" />
+        <di:waypoint x="1260" y="78" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_10d8pmu_di" bpmnElement="SequenceFlow_10d8pmu">
+        <di:waypoint x="1310" y="78" />
+        <di:waypoint x="1391" y="78" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1342" y="60" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1p7wzfg_di" bpmnElement="SequenceFlow_1p7wzfg">
+        <di:waypoint x="1285" y="103" />
+        <di:waypoint x="1285" y="171" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1275" y="134" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_1qsig2n_di" bpmnElement="IntermediateThrowEvent_0joa4fr">
+        <dc:Bounds x="1267" y="171" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1259" y="214" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0glawp6_di" bpmnElement="SequenceFlow_0glawp6">
+        <di:waypoint x="1267" y="189" />
+        <di:waypoint x="1181" y="189" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateCatchEvent_0q707t3_di" bpmnElement="OdebranieOdwolania">
+        <dc:Bounds x="1145" y="171" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1138" y="214" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0l9c2ze_di" bpmnElement="SequenceFlow_0l9c2ze">
+        <di:waypoint x="1147" y="181" />
+        <di:waypoint x="1021" y="122" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
