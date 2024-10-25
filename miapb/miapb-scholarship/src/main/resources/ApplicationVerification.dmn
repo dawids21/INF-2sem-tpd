@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/DMN/20151101/dmn.xsd" id="Definitions_1c1gzq1" name="DRD" namespace="http://camunda.org/schema/1.0/dmn">
+  <decision id="ApplicationVerification" name="ApplicationVerification">
+    <decisionTable id="decisionTable_1">
+      <input id="input_1" label="Average grade">
+        <inputExpression id="inputExpression_1" typeRef="double">
+          <text>${application_averageGrade}</text>
+        </inputExpression>
+      </input>
+      <input id="InputClause_0ze3wy8" label="Number of references">
+        <inputExpression id="LiteralExpression_0zmu2dx" typeRef="integer" expressionLanguage="Groovy">
+          <text>application_references.count(",") + 1</text>
+        </inputExpression>
+      </input>
+      <output id="output_1" label="Is positive?" name="decision_isPositive" typeRef="boolean" />
+      <output id="OutputClause_1gdqpyh" label="Justification" name="decision_justification" typeRef="string" />
+      <output id="OutputClause_19cy3zm" label="Is made?" name="decision_isMade" typeRef="boolean" />
+      <output id="OutputClause_1iij5m4" label="Needs reference verification?" name="decision_referenceVerification" typeRef="boolean" />
+      <rule id="DecisionRule_0kh83nr">
+        <inputEntry id="UnaryTests_1xdq1vt">
+          <text>&gt;= 4.5</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1vm1p1r">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0gmmomv">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0y2kauf">
+          <text>"High average grade"</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1t0ealw">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1i5gx0y">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1qgecsh">
+        <inputEntry id="UnaryTests_1nck6uq">
+          <text>[4.0..4.5[</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_179xmw2">
+          <text>&gt;= 2</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0yjj86b">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_07oweh2">
+          <text>"High grade and good number of references"</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1iwfy6u">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1t1l8sb">
+          <text>true</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_15o8444">
+        <inputEntry id="UnaryTests_1tggkfp">
+          <text>[4.0..4.5[</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1na9ly1">
+          <text>&lt; 2</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_13y38rd">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_03feukf">
+          <text>"Too low average grade and not enough references"</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0e5cstq">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1nxtzje">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_02fg0om">
+        <inputEntry id="UnaryTests_1ijxb63">
+          <text>&lt; 4.0</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0u837e5">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_08ivo28">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1un8xud">
+          <text>"Too low average grade"</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_11w4zxz">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0aczkj5">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>
