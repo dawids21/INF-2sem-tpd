@@ -1,0 +1,81 @@
+---
+title: "Raport o zachorowaniach na gruźlicę"
+author: "Dawid Stasiak"
+date: "2024-11-04"
+output: html_document
+---
+## Biblioteki
+Do przygotowania raportu wykorzystano biblioteki:
+
+- EDAWR
+- dplyr
+```{r setup, include=FALSE}
+devtools::install_github("rstudio/EDAWR")
+library(EDAWR)
+library(dplyr)
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+## Wczytanie danych
+```{r load_data, cache=TRUE}
+tib_tb <- tibble::as_tibble(tb)
+```
+
+```{r summary}
+head(tib_tb)
+str(tib_tb)
+summary(tib_tb)
+```
+Wykorzystany zbiór danych zawiera informacje o zachorowaniach na gruźlicę w różnych krajach w latach 1995-2013.
+W zbiorze jest 3800 wierszy i 6 kolumn. Kolumny to:
+
+- country - kraj
+- year - rok
+- sex - płeć
+- child - liczba zachorowań u dzieci
+- adult - liczba zachorowań u dorosłych
+- elderly - liczba zachorowań u osób starszych
+
+## Liczba zachorowań z podziałem na płeć
+```{r cases_sex}
+cases_sex <- tib_tb %>%
+  group_by(sex) %>%
+  summarise(cases = sum(child + adult + elderly, na.rm = TRUE))
+
+print(cases_sex)
+
+barplot(
+  height = cases_sex$cases / 1000000,
+  names.arg = cases_sex$sex,
+  main = "Liczba zachorowań z podziałem na płeć",
+  xlab = "Płeć",
+  ylab = "Liczba zachorowań [mln]"
+)
+```
+Z powyższego wykresu wynika, że liczba zachorowań u mężczyzn (około 27 mln) jest większa niż u kobiet (około 16 mln).
+
+## Liczba zachorowań w kolejnych latach z podziałem na grupy wiekowe
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
