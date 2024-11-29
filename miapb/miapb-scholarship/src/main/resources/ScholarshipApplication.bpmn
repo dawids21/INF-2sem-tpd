@@ -10,22 +10,22 @@
         <bpmn:flowNodeRef>ApplicationVerification</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>IsDecisionMade</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_1xghpkq</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>FillInBankAccountNumber</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>SupplementStudentStatusStatement</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>SupplementStudentStatusStatementTimeout</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_1wj5li9</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>EndEvent_05irip7</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_19t0gxf</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>FillInBankAccountNumber</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>StartBankAccountNumberVerification</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_1ggq5xa" name="Dean&#39;s office">
-        <bpmn:flowNodeRef>StatementAndReferencesFork</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>CombineResults</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>SetDecisionToNegativeNoStatement</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>NeedsReferenceVerification</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>WaitForReferenceVerification</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>SubProcess_0wnendp</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>StatementError</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>StatementAndReferencesJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NeedsReferenceVerification</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ExclusiveGateway_16db6t0</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>WaitForVerification</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_1rpkee0" name="Reference verificator">
         <bpmn:flowNodeRef>VerifyReferences</bpmn:flowNodeRef>
@@ -34,33 +34,15 @@
         <bpmn:flowNodeRef>ExclusiveGateway_1wxluiz</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_1u219uq" name="Bank">
-        <bpmn:flowNodeRef>StartBankAccountNumberVerification</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ReceiveBankAccountNumberVerificationResults</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>VerificationSuccessful</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>EndEvent_1ycyiwe</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
-    <bpmn:exclusiveGateway id="NeedsReferenceVerification" name="Needs reference verification?" default="SequenceFlow_0k0ud3a">
-      <bpmn:incoming>SequenceFlow_1hsn1rg</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0k0ud3a</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_1y9gjb5</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:parallelGateway id="StatementAndReferencesFork">
-      <bpmn:incoming>SequenceFlow_1y9gjb5</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1n8u9lh</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_0i9ov2p</bpmn:outgoing>
-    </bpmn:parallelGateway>
-    <bpmn:exclusiveGateway id="WaitForReferenceVerification" name="Wait for reference verification?" default="SequenceFlow_0uirmgb">
-      <bpmn:incoming>SequenceFlow_0r8zxo8</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_1ts8xji</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1al10zv</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_0uirmgb</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
     <bpmn:subProcess id="SubProcess_0wnendp">
-      <bpmn:incoming>SequenceFlow_0k0ud3a</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_1n8u9lh</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1vet2zj</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0r8zxo8</bpmn:outgoing>
+      <bpmn:incoming>SequenceFlow_0en7ba0</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1mmiqyk</bpmn:outgoing>
       <bpmn:startEvent id="StartEvent_1f0g4iu">
         <bpmn:outgoing>SequenceFlow_1uw98ub</bpmn:outgoing>
       </bpmn:startEvent>
@@ -81,8 +63,7 @@ execution.setVariable(
     execution.getVariable("decision_justification") + ", statement not accepted"
 )
 execution.setVariable("decision_isPositive", false)
-}
-</bpmn:script>
+}</bpmn:script>
       </bpmn:scriptTask>
       <bpmn:callActivity id="Task_06bgqh8" name="Call statement verification" calledElement="StatementVerification">
         <bpmn:extensionElements>
@@ -98,8 +79,7 @@ execution.setVariable("decision_isPositive", false)
       <bpmn:sequenceFlow id="SequenceFlow_0kw6btm" sourceRef="AddJustificationAfterVerification" targetRef="EndEvent_14yexjw" />
     </bpmn:subProcess>
     <bpmn:scriptTask id="CombineResults" name="Combine results" scriptFormat="groovy">
-      <bpmn:incoming>SequenceFlow_0uirmgb</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_0el30ki</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_13k85da</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1bsl1ld</bpmn:outgoing>
       <bpmn:script>if (execution.hasVariable("decision_referencesVerified")) {
 if (execution.getVariable("decision_referencesVerified")) {
@@ -112,12 +92,12 @@ if (execution.getVariable("decision_referencesVerified")) {
     </bpmn:scriptTask>
     <bpmn:scriptTask id="SetDecisionToNegativeNoStatement" name="Set decision to negative (no statement)" scriptFormat="groovy">
       <bpmn:incoming>SequenceFlow_04b9hvk</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1ts8xji</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0onnynw</bpmn:outgoing>
       <bpmn:script>execution.setVariable("decision_justification", execution.getVariable("decision_justification") + ", has no statement")
 execution.setVariable("decision_isPositive", false)</bpmn:script>
     </bpmn:scriptTask>
     <bpmn:scriptTask id="VerifyReferences" name="Verify references" scriptFormat="groovy" camunda:resultVariable="decision_referencesVerified">
-      <bpmn:incoming>SequenceFlow_0i9ov2p</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0ss9k7c</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0cp3f7i</bpmn:outgoing>
       <bpmn:script>application_references.toLowerCase().contains("szef")</bpmn:script>
     </bpmn:scriptTask>
@@ -171,21 +151,6 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
       <bpmn:incoming>SequenceFlow_1bsl1ld</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0t7nilu</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="FillInBankAccountNumber" name="Fill in bank account number" camunda:assignee="${student}">
-      <bpmn:extensionElements>
-        <camunda:formData>
-          <camunda:formField id="application_bankAccountNumber" label="Bank account number (must start with &#34;12&#34;)" type="string" defaultValue="${application_bankAccountNumber}" />
-        </camunda:formData>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_023ea7w</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1ioy0n8</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:intermediateThrowEvent id="StartBankAccountNumberVerification" name="Start bank account number verification">
-      <bpmn:incoming>SequenceFlow_1ioy0n8</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_06wv3zb</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0qscqub</bpmn:outgoing>
-      <bpmn:messageEventDefinition messageRef="Message_07jtwae" camunda:class="xyz.stasiak.miapbscholarship.BankAccountVerificationRequest" />
-    </bpmn:intermediateThrowEvent>
     <bpmn:sequenceFlow id="SequenceFlow_023ea7w" name="No" sourceRef="VerificationSuccessful" targetRef="FillInBankAccountNumber">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!verification_result}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
@@ -212,12 +177,6 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
     <bpmn:sequenceFlow id="SequenceFlow_1hsn1rg" name="No" sourceRef="IsDecisionMade" targetRef="NeedsReferenceVerification">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!decision_isMade}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_0k0ud3a" name="No" sourceRef="NeedsReferenceVerification" targetRef="SubProcess_0wnendp" />
-    <bpmn:sequenceFlow id="SequenceFlow_1y9gjb5" name="Yes" sourceRef="NeedsReferenceVerification" targetRef="StatementAndReferencesFork">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${decision_referenceVerification}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_1n8u9lh" sourceRef="StatementAndReferencesFork" targetRef="SubProcess_0wnendp" />
-    <bpmn:sequenceFlow id="SequenceFlow_0i9ov2p" sourceRef="StatementAndReferencesFork" targetRef="VerifyReferences" />
     <bpmn:sequenceFlow id="SequenceFlow_0cp3f7i" sourceRef="VerifyReferences" targetRef="IsVerifiedAutomatically" />
     <bpmn:sequenceFlow id="SequenceFlow_02jy1op" name="No" sourceRef="IsVerifiedAutomatically" targetRef="VerifyReferencesManually">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!decision_referencesVerified}</bpmn:conditionExpression>
@@ -240,13 +199,6 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1vet2zj" sourceRef="SupplementStudentStatusStatement" targetRef="SubProcess_0wnendp" />
     <bpmn:sequenceFlow id="SequenceFlow_04b9hvk" sourceRef="SupplementStudentStatusStatementTimeout" targetRef="SetDecisionToNegativeNoStatement" />
-    <bpmn:sequenceFlow id="SequenceFlow_0r8zxo8" sourceRef="SubProcess_0wnendp" targetRef="WaitForReferenceVerification" />
-    <bpmn:sequenceFlow id="SequenceFlow_1ts8xji" sourceRef="SetDecisionToNegativeNoStatement" targetRef="WaitForReferenceVerification" />
-    <bpmn:sequenceFlow id="SequenceFlow_1al10zv" name="Yes" sourceRef="WaitForReferenceVerification" targetRef="StatementAndReferencesJoin">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${decision_referenceVerification}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_0uirmgb" name="No" sourceRef="WaitForReferenceVerification" targetRef="CombineResults" />
-    <bpmn:sequenceFlow id="SequenceFlow_0el30ki" sourceRef="StatementAndReferencesJoin" targetRef="CombineResults" />
     <bpmn:sequenceFlow id="SequenceFlow_1bsl1ld" sourceRef="CombineResults" targetRef="Task_1xghpkq" />
     <bpmn:sequenceFlow id="SequenceFlow_0t7nilu" sourceRef="Task_1xghpkq" targetRef="ExclusiveGateway_1wj5li9" />
     <bpmn:sequenceFlow id="SequenceFlow_05nstfl" name="No" sourceRef="ExclusiveGateway_1wj5li9" targetRef="EndEvent_05irip7">
@@ -273,19 +225,54 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
       <bpmn:outgoing>SequenceFlow_0ui5q8l</bpmn:outgoing>
       <bpmn:errorEventDefinition errorRef="Error_1dnxpug" camunda:errorCodeVariable="verification_errCode" />
     </bpmn:boundaryEvent>
-    <bpmn:parallelGateway id="StatementAndReferencesJoin">
-      <bpmn:incoming>SequenceFlow_1al10zv</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_0exrm2l</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0el30ki</bpmn:outgoing>
-    </bpmn:parallelGateway>
     <bpmn:exclusiveGateway id="ExclusiveGateway_1wxluiz" default="SequenceFlow_0exrm2l">
       <bpmn:incoming>SequenceFlow_00mujj4</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_07sgfam</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0exrm2l</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_0exrm2l" sourceRef="ExclusiveGateway_1wxluiz" targetRef="StatementAndReferencesJoin" />
+    <bpmn:sequenceFlow id="SequenceFlow_0exrm2l" sourceRef="ExclusiveGateway_1wxluiz" targetRef="WaitForVerification" />
     <bpmn:sequenceFlow id="SequenceFlow_00mujj4" sourceRef="VerifyReferencesManually" targetRef="ExclusiveGateway_1wxluiz" />
     <bpmn:sequenceFlow id="SequenceFlow_07sgfam" name="Yes" sourceRef="IsVerifiedAutomatically" targetRef="ExclusiveGateway_1wxluiz" />
+    <bpmn:sequenceFlow id="SequenceFlow_0en7ba0" name="Needs statement verification" sourceRef="NeedsReferenceVerification" targetRef="SubProcess_0wnendp">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_0ss9k7c" name="Needs reference verification" sourceRef="NeedsReferenceVerification" targetRef="VerifyReferences">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${decision_referenceVerification}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:inclusiveGateway id="NeedsReferenceVerification">
+      <bpmn:incoming>SequenceFlow_1hsn1rg</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0en7ba0</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0ss9k7c</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1mmiqyk" sourceRef="SubProcess_0wnendp" targetRef="ExclusiveGateway_16db6t0" />
+    <bpmn:sequenceFlow id="SequenceFlow_0onnynw" sourceRef="SetDecisionToNegativeNoStatement" targetRef="ExclusiveGateway_16db6t0" />
+    <bpmn:exclusiveGateway id="ExclusiveGateway_16db6t0">
+      <bpmn:incoming>SequenceFlow_1mmiqyk</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0onnynw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0kkml84</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0kkml84" sourceRef="ExclusiveGateway_16db6t0" targetRef="WaitForVerification" />
+    <bpmn:sequenceFlow id="SequenceFlow_13k85da" sourceRef="WaitForVerification" targetRef="CombineResults" />
+    <bpmn:inclusiveGateway id="WaitForVerification" name="Wait for verification">
+      <bpmn:incoming>SequenceFlow_0exrm2l</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0kkml84</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_13k85da</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:userTask id="FillInBankAccountNumber" name="Fill in bank account number" camunda:assignee="${student}">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="application_bankAccountNumber" label="Bank account number (must start with &#34;12&#34;)" type="string" defaultValue="${application_bankAccountNumber}" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_023ea7w</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1ioy0n8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="StartBankAccountNumberVerification" name="Start bank account number verification">
+      <bpmn:incoming>SequenceFlow_1ioy0n8</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_06wv3zb</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0qscqub</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_07jtwae" camunda:class="xyz.stasiak.miapbscholarship.BankAccountVerificationRequest" />
+    </bpmn:intermediateThrowEvent>
   </bpmn:process>
   <bpmn:error id="Error_1dnxpug" name="StatementError" errorCode="StatementError" />
   <bpmn:message id="Message_07jtwae" name="bankAccountVerificationMsg" />
@@ -328,29 +315,8 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
       <bpmndi:BPMNShape id="Lane_1rpkee0_di" bpmnElement="Lane_1rpkee0">
         <dc:Bounds x="387" y="804" width="1244" height="247" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0jk00pt_di" bpmnElement="NeedsReferenceVerification" isMarkerVisible="true">
-        <dc:Bounds x="665" y="514" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="573" y="525" width="82" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ParallelGateway_00qx1on_di" bpmnElement="StatementAndReferencesFork">
-        <dc:Bounds x="665" y="659" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="681" y="716" width="18" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ScriptTask_1i0pu8b_di" bpmnElement="VerifyReferences">
         <dc:Bounds x="801" y="820" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_08ei4g6_di" bpmnElement="WaitForReferenceVerification" isMarkerVisible="true">
-        <dc:Bounds x="1235" y="583" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1217" y="640" width="86" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ParallelGateway_0uibdhy_di" bpmnElement="StatementAndReferencesJoin">
-        <dc:Bounds x="1358" y="583" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0wnendp_di" bpmnElement="SubProcess_0wnendp" isExpanded="true">
         <dc:Bounds x="804" y="571" width="350" height="200" />
@@ -407,9 +373,9 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
         <dc:Bounds x="387" y="-120" width="1244" height="201" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_0umetmy_di" bpmnElement="StartBankAccountNumberVerification">
-        <dc:Bounds x="1400" y="-8" width="36" height="36" />
+        <dc:Bounds x="1400" y="95" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1377" y="31" width="81" height="40" />
+          <dc:Bounds x="1308.5" y="93" width="81" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateCatchEvent_0ml6i58_di" bpmnElement="ReceiveBankAccountNumberVerificationResults">
@@ -428,7 +394,7 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
         <dc:Bounds x="1570" y="-76" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0hvpxpv_di" bpmnElement="FillInBankAccountNumber">
-        <dc:Bounds x="1462" y="88" width="100" height="80" />
+        <dc:Bounds x="1510" y="88" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_13cdob2_di" bpmnElement="SequenceFlow_13cdob2">
         <di:waypoint x="1436" y="-58" />
@@ -443,19 +409,21 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_023ea7w_di" bpmnElement="SequenceFlow_023ea7w">
         <di:waypoint x="1512" y="-33" />
-        <di:waypoint x="1512" y="88" />
+        <di:waypoint x="1512" y="28" />
+        <di:waypoint x="1560" y="28" />
+        <di:waypoint x="1560" y="88" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1520" y="25" width="15" height="14" />
+          <dc:Bounds x="1568" y="53" width="15" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1ioy0n8_di" bpmnElement="SequenceFlow_1ioy0n8">
-        <di:waypoint x="1462" y="128" />
-        <di:waypoint x="1383" y="128" />
-        <di:waypoint x="1383" y="10" />
-        <di:waypoint x="1400" y="10" />
+        <di:waypoint x="1510" y="128" />
+        <di:waypoint x="1473" y="128" />
+        <di:waypoint x="1473" y="113" />
+        <di:waypoint x="1436" y="113" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0qscqub_di" bpmnElement="SequenceFlow_0qscqub">
-        <di:waypoint x="1418" y="-8" />
+        <di:waypoint x="1418" y="95" />
         <di:waypoint x="1418" y="-40" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1fgttse_di" bpmnElement="SequenceFlow_1fgttse">
@@ -475,35 +443,10 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1hsn1rg_di" bpmnElement="SequenceFlow_1hsn1rg">
         <di:waypoint x="690" y="237" />
-        <di:waypoint x="690" y="514" />
+        <di:waypoint x="690" y="646" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="698" y="373" width="15" height="14" />
+          <dc:Bounds x="698" y="440" width="15" height="14" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0k0ud3a_di" bpmnElement="SequenceFlow_0k0ud3a">
-        <di:waypoint x="715" y="539" />
-        <di:waypoint x="761" y="539" />
-        <di:waypoint x="761" y="637" />
-        <di:waypoint x="801" y="637" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="770" y="575" width="15" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1y9gjb5_di" bpmnElement="SequenceFlow_1y9gjb5">
-        <di:waypoint x="690" y="564" />
-        <di:waypoint x="690" y="659" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="662" y="625" width="18" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1n8u9lh_di" bpmnElement="SequenceFlow_1n8u9lh">
-        <di:waypoint x="715" y="684" />
-        <di:waypoint x="804" y="684" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0i9ov2p_di" bpmnElement="SequenceFlow_0i9ov2p">
-        <di:waypoint x="690" y="709" />
-        <di:waypoint x="690" y="860" />
-        <di:waypoint x="801" y="860" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0cp3f7i_di" bpmnElement="SequenceFlow_0cp3f7i">
         <di:waypoint x="901" y="860" />
@@ -529,37 +472,6 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
         <di:waypoint x="916" y="272" />
         <di:waypoint x="1102" y="272" />
         <di:waypoint x="1102" y="475" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0r8zxo8_di" bpmnElement="SequenceFlow_0r8zxo8">
-        <di:waypoint x="1154" y="671" />
-        <di:waypoint x="1195" y="671" />
-        <di:waypoint x="1195" y="608" />
-        <di:waypoint x="1235" y="608" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1ts8xji_di" bpmnElement="SequenceFlow_1ts8xji">
-        <di:waypoint x="1152" y="515" />
-        <di:waypoint x="1195" y="515" />
-        <di:waypoint x="1195" y="608" />
-        <di:waypoint x="1235" y="608" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1al10zv_di" bpmnElement="SequenceFlow_1al10zv">
-        <di:waypoint x="1285" y="608" />
-        <di:waypoint x="1358" y="608" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1313" y="590" width="18" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0uirmgb_di" bpmnElement="SequenceFlow_0uirmgb">
-        <di:waypoint x="1260" y="583" />
-        <di:waypoint x="1260" y="452" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1268" y="515" width="15" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0el30ki_di" bpmnElement="SequenceFlow_0el30ki">
-        <di:waypoint x="1383" y="583" />
-        <di:waypoint x="1383" y="412" />
-        <di:waypoint x="1310" y="412" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1bsl1ld_di" bpmnElement="SequenceFlow_1bsl1ld">
         <di:waypoint x="1260" y="372" />
@@ -599,17 +511,16 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_06wv3zb_di" bpmnElement="SequenceFlow_06wv3zb">
         <di:waypoint x="1437" y="187" />
-        <di:waypoint x="1437" y="148" />
-        <di:waypoint x="1357" y="148" />
-        <di:waypoint x="1357" y="10" />
-        <di:waypoint x="1400" y="10" />
+        <di:waypoint x="1437" y="159" />
+        <di:waypoint x="1418" y="159" />
+        <di:waypoint x="1418" y="131" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_0jr3qy7_di" bpmnElement="ExclusiveGateway_1wxluiz" isMarkerVisible="true">
         <dc:Bounds x="1358" y="835" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0exrm2l_di" bpmnElement="SequenceFlow_0exrm2l">
         <di:waypoint x="1383" y="835" />
-        <di:waypoint x="1383" y="633" />
+        <di:waypoint x="1383" y="623" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_00mujj4_di" bpmnElement="SequenceFlow_00mujj4">
         <di:waypoint x="1058" y="991" />
@@ -622,6 +533,57 @@ execution.setVariable("decision_isPositive", false)</bpmn:script>
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1187" y="842" width="18" height="14" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="InclusiveGateway_0qeu3i6_di" bpmnElement="NeedsReferenceVerification">
+        <dc:Bounds x="665" y="646" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="567" y="657" width="82" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0en7ba0_di" bpmnElement="SequenceFlow_0en7ba0">
+        <di:waypoint x="715" y="671" />
+        <di:waypoint x="804" y="671" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="715" y="638" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ss9k7c_di" bpmnElement="SequenceFlow_0ss9k7c">
+        <di:waypoint x="690" y="696" />
+        <di:waypoint x="690" y="860" />
+        <di:waypoint x="801" y="860" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="600" y="777" width="82" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="InclusiveGateway_0ay1jan_di" bpmnElement="WaitForVerification">
+        <dc:Bounds x="1358" y="567" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1418" y="578" width="53" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_16db6t0_di" bpmnElement="ExclusiveGateway_16db6t0" isMarkerVisible="true">
+        <dc:Bounds x="1254" y="567" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1mmiqyk_di" bpmnElement="SequenceFlow_1mmiqyk">
+        <di:waypoint x="1154" y="671" />
+        <di:waypoint x="1207" y="671" />
+        <di:waypoint x="1207" y="592" />
+        <di:waypoint x="1254" y="592" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0onnynw_di" bpmnElement="SequenceFlow_0onnynw">
+        <di:waypoint x="1152" y="515" />
+        <di:waypoint x="1207" y="515" />
+        <di:waypoint x="1207" y="592" />
+        <di:waypoint x="1254" y="592" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0kkml84_di" bpmnElement="SequenceFlow_0kkml84">
+        <di:waypoint x="1304" y="592" />
+        <di:waypoint x="1358" y="592" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_13k85da_di" bpmnElement="SequenceFlow_13k85da">
+        <di:waypoint x="1383" y="567" />
+        <di:waypoint x="1383" y="412" />
+        <di:waypoint x="1310" y="412" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
