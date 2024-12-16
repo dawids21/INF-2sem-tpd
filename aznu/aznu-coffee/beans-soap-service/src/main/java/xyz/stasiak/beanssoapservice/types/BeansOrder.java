@@ -38,6 +38,11 @@ public class BeansOrder {
             return false;
         }
         if (name.equalsIgnoreCase("colombia")) {
+            try {
+                Thread.sleep(5000L);
+            } catch (InterruptedException e) {
+                log.error("Grinding interrupted for brew {}", brewId);
+            }
             throw new BeansSoapException(brewId, "Oops! Colombia beans are on vacation!");
         }
         log.info("Grinding {} g of {} beans for brew {}", weight, name, brewId);

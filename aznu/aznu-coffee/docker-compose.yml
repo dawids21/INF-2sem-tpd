@@ -48,6 +48,7 @@ services:
     image: aznu-coffee/beans-client-service
     depends_on:
       - kafka
+      - beans-soap-service
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
   brew-service:
@@ -70,6 +71,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydatabase
       SPRING_DATASOURCE_USERNAME: myuser
       SPRING_DATASOURCE_PASSWORD: secret
+    ports:
+      - "8080:8080"
   coffee-ui:
     image: aznu-coffee/coffee-ui
     ports:

@@ -38,6 +38,7 @@ public class WaterOrder {
             return false;
         }
         if (temperature > 100) {
+            Thread.sleep(5000L);
             throw new WaterException(brewId, "Water temperature is too high");
         }
         log.info("Preparing water for brew {}", brewId);
